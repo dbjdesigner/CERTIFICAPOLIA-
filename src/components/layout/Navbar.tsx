@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, PlusCircle, BarChart3, Users, LogOut } from "lucide-react";
+import { ShieldCheck, PlusCircle, BarChart3, Settings, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -53,7 +53,7 @@ export function Navbar() {
             </Link>
             {isMaster && (
               <Link href="/admin/users" className="hover:text-accent transition-colors flex items-center gap-1.5">
-                <Users className="h-4 w-4" /> EQUIPE
+                <Settings className="h-4 w-4" /> CONFIGURAÇÃO
               </Link>
             )}
           </nav>

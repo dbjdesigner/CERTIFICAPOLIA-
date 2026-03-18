@@ -8,20 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  PlusCircle, 
   ShieldAlert, 
   UserPlus, 
-  Users, 
   Trash2,
   ShieldCheck,
-  Activity
+  Activity,
+  Settings
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
-export default function UserManagementPage() {
+export default function ConfigurationPage() {
   const { user: currentUser } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
@@ -48,9 +47,6 @@ export default function UserManagementPage() {
     if (!newUserName || !newUserEmail) return;
 
     try {
-      // Usamos o email como base para o ID apenas se não for criar via Auth real. 
-      // Em uma app real, o Master usaria o Firebase Admin ou convidaria o usuário.
-      // Para o protótipo, criamos o registro no Firestore.
       const userId = newUserEmail.replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
@@ -60,7 +56,7 @@ export default function UserManagementPage() {
 
       await setDoc(userRef, {
         id: userId,
-        name: newUserName,
+        name: newUserName.toUpperCase(),
         email: newUserEmail,
         roleId: newUserRole === "Master" ? "master" : "tech",
         permissions,
@@ -71,7 +67,7 @@ export default function UserManagementPage() {
 
       toast({
         title: "Usuário Cadastrado",
-        description: `${newUserName} foi adicionado como ${newUserRole}.`,
+        description: `${newUserName.toUpperCase()} foi adicionado com sucesso.`,
       });
       setNewUserName("");
       setNewUserEmail("");
@@ -129,10 +125,10 @@ export default function UserManagementPage() {
       <main className="flex-1 container mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Gestão de Equipe</h1>
+            <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Configuração do Sistema</h1>
             <p className="text-muted-foreground font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-accent" />
-              Controle de acesso e atribuição de cargos técnicos.
+              <Settings className="h-4 w-4 text-accent" />
+              Terminal de gestão de usuários e autorizações técnicas.
             </p>
           </div>
         </div>
@@ -142,7 +138,7 @@ export default function UserManagementPage() {
             <CardHeader className="bg-[#0B1A2B] text-white rounded-t-lg">
               <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-accent" />
-                CADASTRAR TÉCNICO
+                CADASTRAR NOVO TÉCNICO
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-8 space-y-6">
@@ -166,7 +162,7 @@ export default function UserManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Cargo Hierárquico</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Nível de Acesso</Label>
                 <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant={newUserRole === "Technician" ? "default" : "outline"} 
@@ -197,7 +193,7 @@ export default function UserManagementPage() {
             <CardHeader className="bg-muted/30 border-b">
               <CardTitle className="text-lg font-black text-primary uppercase tracking-tight flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                USUÁRIOS ATIVOS NO SISTEMA
+                USUÁRIOS AUTORIZADOS
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -207,7 +203,7 @@ export default function UserManagementPage() {
                     <tr className="text-left">
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Nome</th>
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">E-mail</th>
-                      <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Cargo</th>
+                      <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Nível</th>
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest text-right">Ação</th>
                     </tr>
                   </thead>
@@ -231,6 +227,7 @@ export default function UserManagementPage() {
                             size="icon" 
                             className="text-destructive hover:bg-destructive/10"
                             onClick={() => handleDeleteUser(u.id)}
+                            disabled={u.email === currentUser?.email}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -249,7 +246,7 @@ export default function UserManagementPage() {
         <div className="flex items-center justify-center gap-3">
           <Activity className="h-5 w-5 text-accent" />
           <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">
-            TERMINAL DE ADMINISTRAÇÃO CERTIFICA LAUDO CVT
+            TERMINAL DE CONFIGURAÇÃO CERTIFICA LAUDO CVT
           </p>
         </div>
       </footer>

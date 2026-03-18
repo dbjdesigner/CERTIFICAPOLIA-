@@ -52,12 +52,23 @@ const SELLERS = [
   "VINICIUS"
 ];
 
+const SERVICE_ITEMS = [
+  "INSPEÇÃO VISUAL COMPLETA",
+  "POLIMENTO REALIZADO",
+  "GRAVAÇÃO DE CÓDIGO",
+  "TESTE DE VÁCUO (ANTES/DEPOIS)",
+  "TROCA DE CORRENTE",
+  "TESTE DE PRESSÃO (ANTES/DEPOIS)",
+  "CORRENTE: OK",
+  "TESTE EM BANCADA ESPECIALIZADA",
+  "SUBSTITUIÇÃO DE VEDAÇÕES"
+];
+
 export function QualityReportForm() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
+  
   // Form State
   const [formData, setFormData] = useState({
     equipmentType: "Unidade CVT Industrial",
@@ -122,26 +133,30 @@ export function QualityReportForm() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+        INSIRA OS DADOS TÉCNICOS PARA EMITIR O LAUDO INDUSTRIAL
+      </p>
+
       {/* Dark Header Action Bar */}
       <div className="bg-[#0B1A2B] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl border-b-4 border-accent">
         <div className="flex items-center gap-4">
-          <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-            <ShieldCheck className="h-6 w-6 text-accent" />
+          <div className="bg-accent/10 p-3 rounded-xl border border-accent/20">
+            <ClipboardCheck className="h-7 w-7 text-accent" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] leading-none mb-1">CERTIFICA LAUDO CVT</p>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">ARQUIVAR NO BANCO DE DADOS</h2>
+            <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] leading-none mb-1">GESTÃO INDUSTRIAL</p>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">ARQUIVAR NO BANCO</h2>
           </div>
         </div>
         
         <div className="flex flex-1 max-w-sm">
-          <Input className="bg-white h-12 rounded-xl border-none shadow-inner font-bold text-primary" placeholder="REF_TECNICA_2026" />
+          <Input className="bg-white h-12 rounded-xl border-none shadow-inner font-bold text-primary" placeholder="REFERÊNCIA_INTERNA" />
         </div>
 
         <Button 
-          className="bg-accent hover:bg-accent/90 text-primary font-black h-12 px-8 rounded-xl gap-2 transition-all hover:scale-105 active:scale-95 uppercase tracking-tight shadow-lg"
-          onClick={() => toast({ title: "Registro Salvo", description: "O laudo CVT foi sincronizado com sucesso." })}
+          className="bg-accent hover:bg-accent/90 text-[#0B1A2B] font-black h-12 px-8 rounded-xl gap-2 transition-all hover:scale-105 active:scale-95 uppercase tracking-tight shadow-lg"
+          onClick={() => toast({ title: "Registro Salvo", description: "O laudo foi sincronizado com sucesso." })}
         >
           <Save className="h-5 w-5" />
           SALVAR REGISTRO
@@ -150,7 +165,7 @@ export function QualityReportForm() {
 
       <Card className="border-none shadow-2xl overflow-hidden bg-white rounded-2xl">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full flex h-auto p-1 bg-muted/20 rounded-none border-b">
+          <TabsList className="w-full flex h-auto p-1 bg-[#F8FAFC] rounded-none border-b">
             {["identificacao", "testes", "servicos", "qualidade", "midia", "garantia"].map((tab) => (
               <TabsTrigger 
                 key={tab}
@@ -166,7 +181,7 @@ export function QualityReportForm() {
             <TabsContent value="identificacao" className="mt-0 space-y-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-black text-primary uppercase tracking-tight">IDENTIFICAÇÃO DA UNIDADE CVT</h2>
+                  <h2 className="text-2xl font-black text-primary uppercase tracking-tight">IDENTIFICAÇÃO DA UNIDADE</h2>
                   <p className="text-sm text-muted-foreground font-medium">Dados técnicos e comerciais para certificação industrial.</p>
                 </div>
                 <Button 
@@ -183,7 +198,7 @@ export function QualityReportForm() {
                 <div className="space-y-3">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Nome do Cliente</Label>
                   <Input 
-                    placeholder="Ex: Mineração Vale" 
+                    placeholder="CLIENTE INDUSTRIAL" 
                     className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5 uppercase"
                     value={formData.clientName}
                     onChange={(e) => handleInputChange('clientName', e.target.value)}
@@ -208,28 +223,10 @@ export function QualityReportForm() {
                 <div className="space-y-3">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Tipo de Conjunto</Label>
                   <Input 
-                    placeholder="Ex: CVT Heavy Duty" 
-                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5"
+                    placeholder="CONJUNTO INDUSTRIAL" 
+                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5 uppercase"
                     value={formData.equipmentType}
                     onChange={(e) => handleInputChange('equipmentType', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Modelo / Tag CVT</Label>
-                  <Input 
-                    placeholder="Ex: CVT-G3-2026" 
-                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5"
-                    value={formData.model}
-                    onChange={(e) => handleInputChange('model', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Número de Série</Label>
-                  <Input 
-                    placeholder="SN-XXXX" 
-                    className="h-14 border-primary/10 focus:border-accent font-mono font-black text-accent bg-muted/5"
-                    value={formData.serialNumber}
-                    onChange={(e) => handleInputChange('serialNumber', e.target.value)}
                   />
                 </div>
               </div>
@@ -238,11 +235,10 @@ export function QualityReportForm() {
             <TabsContent value="testes" className="mt-0 space-y-12">
               <div className="flex items-center gap-4 text-primary bg-muted/10 p-4 rounded-xl">
                 <Activity className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">2. TESTES DE PERFORMANCE CVT</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">2. TESTES DE PERFORMANCE</h2>
               </div>
               
               <div className="space-y-16">
-                {/* Polia Primária */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="h-4 w-4 rounded-full bg-accent" />
@@ -255,10 +251,7 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input 
-                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
-                          defaultValue="MIN: -24 inHg"
-                        />
+                        <Input className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm" defaultValue="MIN: -24 inHg" />
                       </div>
                     </div>
 
@@ -267,44 +260,7 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input 
-                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
-                          defaultValue="510 ±20 kPa"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Polia Secundária */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-4 w-4 rounded-full bg-primary" />
-                    <h3 className="font-black text-lg uppercase tracking-tight text-primary">CONJUNTO POLIA SECUNDÁRIA</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 border-2 border-dashed rounded-3xl bg-muted/5">
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">VÁCUO DE SUCÇÃO (INHG)</Label>
-                      <div className="flex items-center gap-4">
-                        <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
-                        <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input 
-                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
-                          defaultValue="MIN: -24 inHg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">PRESSÃO DE TRABALHO (KPA)</Label>
-                      <div className="flex items-center gap-4">
-                        <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
-                        <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input 
-                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
-                          defaultValue="710 ±20 kPa"
-                        />
+                        <Input className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm" defaultValue="510 ±20 kPa" />
                       </div>
                     </div>
                   </div>
@@ -312,48 +268,23 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
-            <TabsContent value="servicos" className="mt-0 space-y-6">
-              <div className="flex items-center gap-4 text-primary mb-8">
-                <Wrench className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">DETALHAMENTO DOS SERVIÇOS EXECUTADOS</h2>
+            <TabsContent value="servicos" className="mt-0 space-y-8">
+              <div className="flex items-center gap-4 text-primary">
+                <ShieldCheck className="h-8 w-8 text-accent" />
+                <h2 className="text-2xl font-black uppercase tracking-tighter">3. SERVIÇOS REALIZADOS</h2>
               </div>
               
-              <div className="bg-[#0B1A2B] rounded-2xl p-8 shadow-2xl">
-                <Label className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-4 block">LOG TÉCNICO DE MANUTENÇÃO</Label>
-                <Textarea 
-                  rows={15} 
-                  className="bg-transparent border-none focus:ring-0 resize-none font-mono text-emerald-400 text-sm p-4 w-full leading-relaxed" 
-                  placeholder="[2024-05-24 08:30] INÍCIO DO PROCESSO DE DESMONTAGEM CVT..." 
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <div className="p-6 border-2 border-accent/10 rounded-2xl bg-white">
-                  <h4 className="font-black text-[10px] uppercase tracking-widest text-muted-foreground mb-4">Mão de Obra Especializada</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm font-bold text-primary">
-                      <span>Engenheiro Responsável:</span>
-                      <span className="text-accent uppercase">DIEGO</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {SERVICE_ITEMS.map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 p-8 border border-muted/20 rounded-[2rem] bg-white hover:border-accent/30 transition-all cursor-pointer group shadow-sm">
+                    <div className="h-6 w-6 rounded-full border-2 border-primary group-hover:border-accent flex items-center justify-center shrink-0">
+                      <div className="h-2 w-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="flex justify-between items-center text-sm font-bold text-primary">
-                      <span>Equipe Técnica:</span>
-                      <span className="text-accent uppercase">Time A - Hidráulica</span>
-                    </div>
+                    <Label className="font-black text-primary text-[11px] uppercase tracking-tight cursor-pointer leading-tight">
+                      {item}
+                    </Label>
                   </div>
-                </div>
-                <div className="p-6 border-2 border-accent/10 rounded-2xl bg-white">
-                  <h4 className="font-black text-[10px] uppercase tracking-widest text-muted-foreground mb-4">Tempo de Execução</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm font-bold text-primary">
-                      <span>Duração Estimada:</span>
-                      <span className="text-accent uppercase">18 HORAS TÉCNICAS</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm font-bold text-primary">
-                      <span>Complexidade:</span>
-                      <span className="text-accent uppercase">ALTA PRECISÃO</span>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </TabsContent>
 
@@ -361,11 +292,11 @@ export function QualityReportForm() {
               <h2 className="text-2xl font-black text-primary uppercase tracking-tight">Checklist de Qualidade Certificada</h2>
               <div className="grid gap-4">
                 {[
-                  "Inspeção dimensional de polias e correia CVT",
-                  "Teste de estanqueidade do cárter",
-                  "Calibração de sensores de pressão primária",
-                  "Verificação de torque em parafusos estruturais",
-                  "Análise espectrográfica de lubrificante"
+                  "Inspeção dimensional de polias",
+                  "Teste de estanqueidade",
+                  "Calibração de sensores",
+                  "Verificação de torque",
+                  "Análise de lubrificante"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 p-6 border-2 border-muted/20 rounded-3xl hover:border-accent/30 transition-all bg-white cursor-pointer group shadow-sm">
                     <input type="checkbox" className="h-8 w-8 rounded-lg border-2 border-primary accent-accent cursor-pointer" id={`q-${i}`} />
@@ -385,19 +316,13 @@ export function QualityReportForm() {
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className="aspect-square relative rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl group bg-slate-100">
                     <img 
                       src={`https://picsum.photos/seed/cvt-${i+20}/400`} 
                       alt="CVT Evidence" 
                       className="object-cover w-full h-full group-hover:scale-125 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="ghost" className="text-white font-black uppercase text-[8px] tracking-[0.2em]">VISUALIZAR</Button>
-                    </div>
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-primary/90 text-white text-[8px] font-black border-none px-3 py-1">CVT_IMG_00{i}</Badge>
-                    </div>
                   </div>
                 ))}
                 <div className="aspect-square border-4 border-dashed border-muted rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-muted-foreground hover:bg-accent/5 hover:border-accent cursor-pointer transition-all bg-white group shadow-inner">
@@ -408,7 +333,7 @@ export function QualityReportForm() {
             </TabsContent>
 
             <TabsContent value="garantia" className="mt-0 space-y-10">
-              <h2 className="text-2xl font-black text-primary uppercase tracking-tight">CERTIFICADO DE GARANTIA CVT</h2>
+              <h2 className="text-2xl font-black text-primary uppercase tracking-tight">CERTIFICADO DE GARANTIA</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="space-y-4">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Período de Cobertura</Label>
@@ -417,34 +342,20 @@ export function QualityReportForm() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="6" className="font-bold">06 MESES CERTIFICADOS</SelectItem>
-                      <SelectItem value="12" className="font-bold">12 MESES CERTIFICADOS</SelectItem>
-                      <SelectItem value="24" className="font-bold">24 MESES CERTIFICADOS</SelectItem>
+                      <SelectItem value="6" className="font-bold">06 MESES</SelectItem>
+                      <SelectItem value="12" className="font-bold">12 MESES</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-4">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Início da Vigência</Label>
-                  <Input type="date" className="h-20 border-primary/10 text-2xl font-black bg-muted/5" defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-              </div>
-              <div className="p-8 border-4 border-accent/20 rounded-[2rem] bg-accent/5">
-                <p className="text-sm font-bold text-primary leading-relaxed text-center italic">
-                  "Este certificado valida que a unidade CVT passou por rigorosos testes de qualidade industrial conforme normas ABNT e manuais do fabricante, operando dentro das tolerâncias especificadas."
-                </p>
               </div>
             </TabsContent>
           </CardContent>
         </Tabs>
       </Card>
       
-      {/* Footer info */}
-      <footer className="py-16 text-center">
-        <div className="flex justify-center mb-6">
-          <ShieldCheck className="h-12 w-12 text-primary opacity-20" />
-        </div>
-        <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
-          © 2026 CERTIFICA LAUDO CVT - BRAZILIAN SOLUÇÕES INDUSTRIAIS - V6.0
+      <footer className="py-12 text-center">
+        <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.3em]">
+          © 2026 BRAZILIAN SOLUÇÕES INDUSTRIAIS - SISTEMA DE QUALIDADE V4.5
         </p>
       </footer>
     </div>

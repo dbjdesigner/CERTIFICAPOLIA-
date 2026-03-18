@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, Lock, User, Activity } from "lucide-react";
-import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { ShieldCheck, Lock, User, Activity, ShieldAlert } from "lucide-react";
+import { useAuth, useFirestore } from "@/firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const auth = useAuth();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -36,6 +38,52 @@ export default function LoginPage() {
         variant: "destructive",
         title: "Falha na Autenticação",
         description: "Credenciais inválidas ou acesso negado.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const provisionMaster = async () => {
+    setIsLoading(true);
+    const masterEmail = "3DRIMPRESSOES@GMAIL.COM";
+    const masterPass = "Diego1810@";
+
+    try {
+      // Tentar criar o usuário no Auth
+      let userCredential;
+      try {
+        userCredential = await createUserWithEmailAndPassword(auth, masterEmail, masterPass);
+      } catch (e: any) {
+        // Se o usuário já existe no Auth, apenas tentamos o login para pegar as credenciais
+        userCredential = await signInWithEmailAndPassword(auth, masterEmail, masterPass);
+      }
+
+      const user = userCredential.user;
+      
+      // Criar/Atualizar o documento no Firestore com permissões de MESTRE
+      await setDoc(doc(db, "users", user.uid), {
+        id: user.uid,
+        name: "DIEGO (MESTRE)",
+        email: masterEmail,
+        roleId: "master",
+        permissions: ["can_manage_users", "can_create_report", "can_view_all_reports", "can_archive_reports", "can_access_media"],
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      toast({
+        title: "Mestre Provisionado",
+        description: "Acesso administrativo configurado com sucesso.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Erro no Provisionamento",
+        description: error.message || "Não foi possível configurar o acesso mestre.",
       });
     } finally {
       setIsLoading(false);
@@ -77,7 +125,7 @@ export default function LoginPage() {
                   <Input 
                     id="email" 
                     type="email"
-                    placeholder="tecnico@certifica.com" 
+                    placeholder="3DRIMPRESSOES@GMAIL.COM" 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -92,6 +140,7 @@ export default function LoginPage() {
                   <Input 
                     id="password" 
                     type="password" 
+                    placeholder="Diego1810@"
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -107,6 +156,25 @@ export default function LoginPage() {
                 {isLoading ? "PROCESSANDO ACESSO..." : "ACESSAR TERMINAL"}
               </Button>
             </form>
+
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground font-black">Primeiro Acesso</span>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full border-accent/20 text-accent h-12 font-black uppercase text-xs hover:bg-accent/5 gap-2"
+              onClick={provisionMaster}
+              disabled={isLoading}
+            >
+              <ShieldAlert className="h-4 w-4" />
+              Provisionar Acesso Mestre (Diego)
+            </Button>
           </CardContent>
           <CardFooter className="flex flex-col border-t bg-muted/20 p-8 space-y-4">
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-accent">

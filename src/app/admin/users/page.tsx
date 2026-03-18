@@ -48,11 +48,14 @@ export default function UserManagementPage() {
     if (!newUserName || !newUserEmail) return;
 
     try {
+      // Usamos o email como base para o ID apenas se não for criar via Auth real. 
+      // Em uma app real, o Master usaria o Firebase Admin ou convidaria o usuário.
+      // Para o protótipo, criamos o registro no Firestore.
       const userId = newUserEmail.replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
       const permissions = newUserRole === "Master" 
-        ? ["can_manage_users", "can_create_report", "can_view_all_reports"] 
+        ? ["can_manage_users", "can_create_report", "can_view_all_reports", "can_archive_reports", "can_access_media"] 
         : ["can_create_report"];
 
       await setDoc(userRef, {

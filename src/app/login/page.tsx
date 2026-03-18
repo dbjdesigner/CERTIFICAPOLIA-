@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -39,7 +38,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Falha na Autenticação",
-        description: "E-mail ou senha incorretos. Se ainda não tem senha, clique em 'Primeiro Acesso'.",
+        description: "E-mail ou senha incorretos. Se ainda não tem senha, clique em 'É MEU PRIMEIRO ACESSO'.",
       });
     } finally {
       setIsLoading(false);
@@ -62,7 +61,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "E-mail não autorizado",
-          description: "Este e-mail ainda não foi cadastrado pelo Administrador DIEGO ROSA no painel de Configurações.",
+          description: "Este e-mail ainda não foi autorizado pelo administrador. Cadastre-o primeiro no painel de Configurações.",
         });
         setIsLoading(false);
         return;
@@ -78,15 +77,9 @@ export default function LoginPage() {
       await setDoc(doc(db, "users", user.uid), {
         ...authorizedUserData,
         id: user.uid,
-        email: cleanEmail, // Garantindo minúscula
+        email: cleanEmail,
         updatedAt: new Date().toISOString()
       });
-
-      // Se o ID original era diferente (ex: baseado no email), opcionalmente deletamos o antigo
-      const oldId = querySnapshot.docs[0].id;
-      if (oldId !== user.uid) {
-        // Para manter simples no protótipo, não deletamos, mas o sistema priorizará o UID logado
-      }
 
       toast({
         title: "Conta Criada!",
@@ -104,7 +97,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "Erro no Cadastro",
-          description: "Verifique sua conexão e tente novamente.",
+          description: "Certifique-se de que o e-mail foi cadastrado exatamente como você o digitou.",
         });
       }
     } finally {
@@ -114,8 +107,9 @@ export default function LoginPage() {
 
   const provisionMaster = async () => {
     setIsLoading(true);
-    const masterEmail = "3drimpressoes@gmail.com";
-    const masterPass = "Diego1810@";
+    // Usando o e-mail do usuário para facilitar o acesso inicial
+    const masterEmail = email.toLowerCase().trim() || "meiokilo1810@gmail.com";
+    const masterPass = password || "Diego1810@";
 
     try {
       let userCredential;
@@ -140,14 +134,14 @@ export default function LoginPage() {
 
       toast({
         title: "Mestre Provisionado",
-        description: "Acesso administrativo configurado para DIEGO ROSA.",
+        description: `Acesso administrativo configurado para DIEGO ROSA (${masterEmail}).`,
       });
       router.push("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro no Provisionamento",
-        description: error.message || "Não foi possível configurar o acesso mestre.",
+        description: "Tente preencher o e-mail e senha antes de dar duplo clique no ícone.",
       });
     } finally {
       setIsLoading(false);
@@ -164,7 +158,7 @@ export default function LoginPage() {
           <div 
             className="bg-primary p-5 rounded-[2rem] shadow-2xl rotate-6 hover:rotate-0 transition-transform duration-500 cursor-help"
             onDoubleClick={provisionMaster}
-            title="Área Administrativa"
+            title="Clique duplo para Configurar Diego Rosa como Mestre"
           >
             <Activity className="h-12 w-12 text-accent" />
           </div>
@@ -184,7 +178,7 @@ export default function LoginPage() {
             </CardTitle>
             <CardDescription className="text-muted-foreground font-medium">
               {isFirstAccess 
-                ? "Defina sua senha para o e-mail autorizado pelo administrador." 
+                ? "Defina sua senha para o e-mail autorizado." 
                 : "Ambiente restrito a técnicos e engenheiros especializados."}
             </CardDescription>
           </CardHeader>

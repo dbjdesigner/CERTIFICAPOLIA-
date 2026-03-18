@@ -37,12 +37,12 @@ service cloud.firestore {
 
     /**
      * @description Rules for the User collection.
+     * Allow read for everyone during prototype to enable "First Access" email verification.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isMaster();
-      allow list: if isMaster();
-      allow create: if (isMaster() || isOwner(userId)) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) || isMaster()) && request.resource.data.id == resource.data.id;
+      allow read, list: if true; 
+      allow create: if (isMaster() || (isSignedIn() && request.resource.data.id == request.auth.uid));
+      allow update: if (isOwner(userId) || isMaster());
       allow delete: if isMaster();
     }
 
@@ -57,11 +57,6 @@ service cloud.firestore {
 
     /**
      * @description Rules for Quality Reports.
-     * @path /reports/{reportId}
-     * @allow (read) If user is a Master or the technician who created the report.
-     * @allow (create) If user has the 'can_create_report' permission.
-     * @allow (update) If user is a Master or the original technician.
-     * @allow (delete) Only if user is a Master.
      */
     match /reports/{reportId} {
       allow get: if isSignedIn() && (isMaster() || resource.data.technicianId == request.auth.uid);

@@ -28,7 +28,8 @@ import {
   Award,
   DollarSign,
   ThumbsUp,
-  Hash
+  Hash,
+  Plus
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -46,14 +47,25 @@ const SELLERS = [
   "VINICIUS"
 ];
 
+const CVT_MODELS = [
+  "JF011",
+  "JF011E",
+  "JF011E 2X MOLAS",
+  "JF015",
+  "JF015E",
+  "JF016"
+];
+
 export function QualityReportForm() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+  const [showCustomModel, setShowCustomModel] = useState(false);
   
   const [formData, setFormData] = useState({
-    equipmentType: "Unidade CVT Industrial",
+    equipmentType: "JF011",
+    customEquipmentType: "",
     model: "MODELO_CVT_2026",
     manufacturer: "BRAZILIAN_SYSTEMS",
     serialNumber: "CF*",
@@ -84,7 +96,8 @@ export function QualityReportForm() {
   };
 
   const handleAiAssist = async () => {
-    if (!formData.equipmentType && !formData.partialDescription) {
+    const currentModel = formData.equipmentType === "CRIAR" ? formData.customEquipmentType : formData.equipmentType;
+    if (!currentModel && !formData.partialDescription) {
       toast({
         title: "Dados Insuficientes",
         description: "Insira o tipo de equipamento para a IA processar.",
@@ -96,7 +109,7 @@ export function QualityReportForm() {
     setIsAiLoading(true);
     try {
       const result = await aiAssistedDataEntry({
-        equipmentType: formData.equipmentType,
+        equipmentType: currentModel,
         partialDescription: formData.partialDescription,
         serialNumber: formData.serialNumber,
         clientInfo: formData.clientInfo,
@@ -346,13 +359,37 @@ export function QualityReportForm() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Conjunto CVT</Label>
-                  <Input 
-                    placeholder="CONJUNTO CVT" 
-                    className="h-12 border-primary/10 font-black uppercase bg-muted/5"
-                    value={formData.equipmentType}
-                    onChange={(e) => handleInputChange('equipmentType', e.target.value)}
-                  />
+                  <Select 
+                    value={formData.equipmentType} 
+                    onValueChange={(value) => {
+                      handleInputChange('equipmentType', value);
+                      setShowCustomModel(value === "CRIAR");
+                    }}
+                  >
+                    <SelectTrigger className="h-12 border-primary/10 font-black bg-muted/5">
+                      <SelectValue placeholder="Selecione o Conjunto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CVT_MODELS.map(model => (
+                        <SelectItem key={model} value={model} className="font-black uppercase">{model}</SelectItem>
+                      ))}
+                      <SelectItem value="CRIAR" className="font-black text-accent uppercase flex items-center gap-2">
+                        <Plus className="h-3 w-3 inline mr-1" /> CRIAR NOVO...
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                {showCustomModel && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Especificar Novo Modelo</Label>
+                    <Input 
+                      placeholder="Digite o novo modelo CVT" 
+                      className="h-12 border-accent/30 focus:border-accent font-black uppercase bg-accent/5"
+                      value={formData.customEquipmentType}
+                      onChange={(e) => handleInputChange('customEquipmentType', e.target.value.toUpperCase())}
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo de Operação</Label>
                   <Select 

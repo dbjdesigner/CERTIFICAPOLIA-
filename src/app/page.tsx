@@ -34,6 +34,7 @@ export default function Dashboard() {
   
   const { data: currentUserDoc } = useDoc(userDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+  const techName = isMaster ? "DIEGO ROSA" : (currentUserDoc?.name || "TÉCNICO");
 
   const reportsQuery = useMemoFirebase(() => {
     if (!db || !user || !currentUserDoc) return null;
@@ -132,7 +133,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Terminal Industrial</h1>
             <p className="text-muted-foreground flex items-center gap-2 font-medium uppercase text-[10px] tracking-widest">
               <Activity className="h-4 w-4 text-accent" />
-              Técnico: {currentUserDoc?.name || "Acessando..."}
+              Responsável: {techName}
             </p>
           </div>
           <Link href="/reports/new">

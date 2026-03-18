@@ -20,6 +20,7 @@ export function Navbar() {
   
   const { data: currentUserDoc } = useDoc(userDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+  const displayName = isMaster ? "DIEGO ROSA" : (currentUserDoc?.name || user?.email?.split('@')[0] || "ACESSANDO...");
 
   const handleLogout = () => {
     auth.signOut();
@@ -62,7 +63,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-black leading-none uppercase tracking-tight text-primary">
-              {currentUserDoc?.name || user?.email?.split('@')[0] || "ACESSANDO..."}
+              {displayName}
             </p>
             <p className="text-[9px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">
               {isMaster ? "RESPONSÁVEL TÉCNICO (MESTRE)" : "TÉCNICO ESPECIALISTA"}

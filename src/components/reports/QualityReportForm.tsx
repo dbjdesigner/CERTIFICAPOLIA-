@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -207,6 +206,9 @@ export function QualityReportForm() {
   const { data: currentUserDoc } = useDoc(userDocRef);
   const { data: existingReport, isLoading: isReportLoading } = useDoc(reportRef);
 
+  const canEditStatus = currentUserDoc?.permissions?.includes("can_create_report") || currentUserDoc?.permissions?.includes("can_manage_users");
+  const isBudgetOnly = currentUserDoc?.permissions?.includes("can_only_budget") && !canEditStatus;
+
   useEffect(() => {
     if (existingReport) {
       setFormData(prev => ({ ...prev, ...existingReport }));
@@ -289,7 +291,7 @@ export function QualityReportForm() {
     
     if (!reportId) {
       router.push(`/reports/${finalId}`);
-      toast({ title: "Orçamento Criado", description: "O registro foi salvo na aba de orçamentos." });
+      toast({ title: "Registro Industrial", description: "O orçamento foi cadastrado no terminal." });
     }
   };
 
@@ -317,12 +319,12 @@ export function QualityReportForm() {
               <Save className="h-4 w-4 mr-2" /> REGISTRAR ORÇAMENTO
             </Button>
           )}
-          {status === 'Budget' && reportId && (
+          {status === 'Budget' && reportId && canEditStatus && (
             <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs h-12 px-8 shadow-lg" onClick={() => { setStatus('InRecovery'); saveReport('InRecovery'); toast({ title: "Aprovado pelo Cliente" }); }}>
               <ThumbsUp className="h-4 w-4 mr-2" /> APROVAR E INICIAR RECUPERAÇÃO
             </Button>
           )}
-          {status === 'InRecovery' && (
+          {status === 'InRecovery' && canEditStatus && (
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs h-12 px-8 shadow-lg" onClick={() => { setStatus('Published'); saveReport('Published'); toast({ title: "Laudo Finalizado" }); }}>
               <CheckCircle2 className="h-4 w-4 mr-2" /> FINALIZAR E LIBERAR LAUDO
             </Button>

@@ -15,7 +15,8 @@ import {
   Activity,
   Settings,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  FileText
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, deleteDoc, collection } from "firebase/firestore";
@@ -23,7 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 const AVAILABLE_PERMISSIONS = [
-  { id: "can_create_report", label: "Emitir/Editar Laudos" },
+  { id: "can_only_budget", label: "Apenas Criar Orçamentos" },
+  { id: "can_create_report", label: "Emitir/Editar Laudos Técnicos" },
   { id: "can_view_all_reports", label: "Visualizar Todos os Laudos" },
   { id: "can_archive_reports", label: "Arquivar Registros" },
   { id: "can_access_media", label: "Acessar Mídias/Fotos" },
@@ -37,7 +39,7 @@ export default function ConfigurationPage() {
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState("Technician");
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(["can_create_report"]);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(["can_only_budget"]);
 
   const currentUserDocRef = useMemoFirebase(() => {
     if (!db || !currentUser?.uid) return null;
@@ -52,7 +54,7 @@ export default function ConfigurationPage() {
     if (newUserRole === "Master") {
       setSelectedPermissions(AVAILABLE_PERMISSIONS.map(p => p.id));
     } else {
-      setSelectedPermissions(["can_create_report", "can_view_all_reports"]);
+      setSelectedPermissions(["can_only_budget", "can_view_all_reports"]);
     }
   }, [newUserRole]);
 

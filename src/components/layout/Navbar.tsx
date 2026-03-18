@@ -1,18 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Bell, Search, Activity, FileText, Settings, User, ShieldCheck } from "lucide-react";
+import { ShieldCheck, Activity, PlusCircle, BarChart3 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   return (
@@ -25,37 +15,35 @@ export function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-black tracking-tighter uppercase leading-none">
-                CERTIFICA<span className="text-accent">POLIA</span>
+                CERTIFICA <span className="text-accent italic">LAUDO CVT</span>
               </span>
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                CONTROLE DE QUALIDADE BRAZILIAN
+                SISTEMA DE ALTA PRECISÃO INDUSTRIAL
               </span>
             </div>
           </Link>
 
           <nav className="hidden xl:flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] ml-10">
-            <Link href="/" className="hover:text-accent transition-colors flex items-center gap-1.5">
+            <Link href="/reports/new" className="hover:text-accent transition-colors flex items-center gap-1.5">
               <PlusCircle className="h-4 w-4" /> NOVO LAUDO
             </Link>
             <Link href="/reports" className="hover:text-accent transition-colors flex items-center gap-1.5">
-              <BarChart3 className="h-4 w-4" /> RELATÓRIOS / EXCLUIR
+              <BarChart3 className="h-4 w-4" /> RELATÓRIOS
             </Link>
           </nav>
         </div>
 
         <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-black leading-none uppercase tracking-tight text-primary">MESTRE BRAZILIAN</p>
-            <p className="text-[9px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">ACESSO MESTRE LIBERADO</p>
+            <p className="text-sm font-black leading-none uppercase tracking-tight text-primary">DIEGO</p>
+            <p className="text-[9px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">RESPONSÁVEL TÉCNICO</p>
           </div>
           <Avatar className="h-12 w-12 border-2 border-accent/20">
-            <AvatarImage src="https://picsum.photos/seed/brazilian/200" />
-            <AvatarFallback className="bg-primary text-white font-black">MB</AvatarFallback>
+            <AvatarImage src="https://picsum.photos/seed/diego/200" />
+            <AvatarFallback className="bg-primary text-white font-black">DG</AvatarFallback>
           </Avatar>
         </div>
       </div>
     </header>
   );
 }
-
-import { PlusCircle, BarChart3 } from "lucide-react";

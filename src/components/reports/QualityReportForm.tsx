@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,6 @@ import {
   Sparkles,
   Save,
   Loader2,
-  PlusCircle,
-  Fingerprint,
   Activity,
   ShieldCheck,
   History
@@ -40,24 +38,11 @@ const SELLERS = [
   "VINICIUS"
 ];
 
-const SERVICE_ITEMS = [
-  "INSPEÇÃO VISUAL COMPLETA",
-  "POLIMENTO REALIZADO",
-  "GRAVAÇÃO DE CÓDIGO",
-  "TESTE DE VÁCUO (ANTES/DEPOIS)",
-  "TROCA DE CORRENTE",
-  "TESTE DE PRESSÃO (ANTES/DEPOIS)",
-  "CORRENTE: OK",
-  "TESTE EM BANCADA ESPECIALIZADA",
-  "SUBSTITUIÇÃO DE VEDAÇÕES"
-];
-
 export function QualityReportForm() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
   
-  // Form State
   const [formData, setFormData] = useState({
     equipmentType: "Unidade CVT Industrial",
     model: "MODELO_CVT_2026",
@@ -68,13 +53,10 @@ export function QualityReportForm() {
     clientInfo: "",
     operationType: "maintenance" as any,
     partialDescription: "",
-    // Test data
-    testVacInBefore: "0",
-    testVacInAfter: "0",
-    testPresInBefore: "0",
-    testPresInAfter: "0",
-    testRefVac: "-24",
-    testRefPres: "510"
+    testVacRef: "-24",
+    testPresRef: "510",
+    testVacValue: "",
+    testPresValue: ""
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -111,7 +93,7 @@ export function QualityReportForm() {
 
       toast({
         title: "Processamento Concluído",
-        description: `Dados CVT sugeridos com alta precisão.`,
+        description: `Dados CVT sugeridos com sucesso.`,
       });
     } catch (error) {
       toast({
@@ -125,86 +107,73 @@ export function QualityReportForm() {
   };
 
   return (
-    <div className="space-y-8">
-      <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-        TERMINAL TÉCNICO DE CERTIFICAÇÃO INDUSTRIAL V4.5
-      </p>
-
-      {/* Dark Header Action Bar */}
-      <div className="bg-[#0B1A2B] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl border-b-4 border-accent">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center gap-4">
-          <div className="bg-accent/10 p-3 rounded-xl border border-accent/20">
-            <ClipboardCheck className="h-7 w-7 text-accent" />
+          <div className="bg-primary/10 p-3 rounded-lg">
+            <ClipboardCheck className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] leading-none mb-1">GESTÃO INDUSTRIAL</p>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">ARQUIVAR NO BANCO</h2>
+            <h2 className="text-xl font-bold text-primary uppercase">Registro Técnico</h2>
+            <p className="text-sm text-muted-foreground font-medium">Responsável: <span className="text-accent font-bold">DIEGO</span></p>
           </div>
         </div>
-        
-        <div className="flex flex-1 max-w-sm">
-          <Input className="bg-white h-12 rounded-xl border-none shadow-inner font-bold text-primary" placeholder="REFERÊNCIA_INTERNA" />
-        </div>
-
         <Button 
-          className="bg-accent hover:bg-accent/90 text-[#0B1A2B] font-black h-12 px-8 rounded-xl gap-2 transition-all hover:scale-105 active:scale-95 uppercase tracking-tight shadow-lg"
-          onClick={() => toast({ title: "Registro Salvo", description: "O laudo foi sincronizado com DIEGO (Resp. Técnico)." })}
+          className="bg-primary hover:bg-primary/90 text-white gap-2 font-bold"
+          onClick={() => toast({ title: "Laudo Salvo", description: "O registro foi sincronizado com sucesso." })}
         >
-          <Save className="h-5 w-5" />
-          SALVAR REGISTRO
+          <Save className="h-4 w-4" />
+          SALVAR LAUDO
         </Button>
       </div>
 
-      <Card className="border-none shadow-2xl overflow-hidden bg-white rounded-2xl">
+      <Card className="border-none shadow-lg overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full flex h-auto p-1 bg-[#F8FAFC] rounded-none border-b overflow-x-auto">
-            {["identificacao", "testes", "servicos", "qualidade", "midia", "garantia"].map((tab) => (
+          <TabsList className="w-full justify-start h-auto p-0 bg-muted/50 rounded-none border-b overflow-x-auto">
+            {["identificacao", "testes", "servicos", "qualidade", "midia"].map((tab) => (
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="flex-1 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-accent rounded-none transition-all min-w-[120px]"
+                className="px-8 py-4 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none font-bold uppercase text-[10px] tracking-widest transition-all"
               >
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{tab === "servicos" ? "SERVIÇOS" : tab}</span>
+                {tab}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <CardContent className="p-10">
-            {/* IDENTIFICAÇÃO */}
+          <CardContent className="p-8">
             <TabsContent value="identificacao" className="mt-0 space-y-6">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-2xl font-black text-primary uppercase tracking-tight">IDENTIFICAÇÃO DA UNIDADE</h2>
-                  <p className="text-sm text-muted-foreground font-medium">Responsável Técnico: <span className="text-accent font-black">DIEGO</span></p>
-                </div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-primary uppercase tracking-tight">Dados da Unidade</h3>
                 <Button 
                   onClick={handleAiAssist} 
                   disabled={isAiLoading}
-                  className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg h-12 px-6 font-black uppercase text-[10px] tracking-widest"
+                  variant="outline"
+                  className="gap-2 border-primary/20 text-primary font-bold"
                 >
-                  {isAiLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5 text-accent" />}
-                  ASSISTÊNCIA IA
+                  {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
+                  IA ASSISTANT
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="space-y-3">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Nome do Cliente</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Nome do Cliente</Label>
                   <Input 
-                    placeholder="CLIENTE INDUSTRIAL" 
-                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5 uppercase"
+                    placeholder="CLIENTE S/A" 
+                    className="h-12 border-primary/10 focus:border-primary font-bold"
                     value={formData.clientName}
                     onChange={(e) => handleInputChange('clientName', e.target.value)}
                   />
                 </div>
-                <div className="space-y-3">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Vendedor Responsável</Label>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Vendedor</Label>
                   <Select 
                     value={formData.sellerName} 
                     onValueChange={(value) => handleInputChange('sellerName', value)}
                   >
-                    <SelectTrigger className="h-14 border-primary/10 focus:ring-accent font-black text-primary bg-muted/5 uppercase">
-                      <SelectValue placeholder="Selecione o Vendedor" />
+                    <SelectTrigger className="h-12 border-primary/10 font-bold">
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {SELLERS.map(seller => (
@@ -213,11 +182,11 @@ export function QualityReportForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-3">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Tipo de Conjunto</Label>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Tipo de Conjunto</Label>
                   <Input 
-                    placeholder="CONJUNTO INDUSTRIAL" 
-                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5 uppercase"
+                    placeholder="CONJUNTO CVT" 
+                    className="h-12 border-primary/10 font-bold"
                     value={formData.equipmentType}
                     onChange={(e) => handleInputChange('equipmentType', e.target.value)}
                   />
@@ -225,219 +194,123 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
-            {/* TESTES */}
-            <TabsContent value="testes" className="mt-0 space-y-12">
-              <div className="flex items-center gap-4 text-primary bg-muted/10 p-4 rounded-xl">
-                <Activity className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">2. PERFORMANCE HIDRÁULICA (COMPARATIVO)</h2>
+            <TabsContent value="testes" className="mt-0 space-y-8">
+              <div className="flex items-center gap-3 text-primary mb-6">
+                <Activity className="h-6 w-6 text-accent" />
+                <h3 className="text-lg font-bold uppercase">Métricas de Performance</h3>
               </div>
               
-              <div className="space-y-16">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-3">
-                    <div className="h-4 w-4 rounded-full bg-accent" />
-                    <h3 className="font-black text-lg uppercase tracking-tight text-primary">MONITORAMENTO DE POLIAS</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* VÁCUO SECTION */}
-                    <div className="space-y-6 p-8 border-2 border-dashed rounded-[2.5rem] bg-muted/5 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 bg-accent text-white px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-widest shadow-lg">
-                        VÁCUO (INHG)
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-6 mt-4">
-                        <div className="space-y-3">
-                          <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">COMO CHEGOU</Label>
-                          <div className="relative">
-                            <Input 
-                              type="number"
-                              className="h-20 text-center text-3xl font-black border-muted-foreground/20 text-primary bg-white rounded-2xl" 
-                              value={formData.testVacInBefore}
-                              onChange={(e) => handleInputChange('testVacInBefore', e.target.value)}
-                            />
-                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-muted-foreground">INHG</span>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <Label className="text-[9px] font-black text-accent uppercase tracking-widest">PÓS RECUPERAÇÃO</Label>
-                          <div className="relative">
-                            <Input 
-                              type="number"
-                              className="h-20 text-center text-3xl font-black bg-[#E6F7F9] border-accent/30 text-accent rounded-2xl" 
-                              value={formData.testVacInAfter}
-                              onChange={(e) => handleInputChange('testVacInAfter', e.target.value)}
-                            />
-                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-accent">INHG</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-muted/50">
-                        <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">REFERÊNCIA TÉCNICA (EDITÁVEL)</Label>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-black text-primary uppercase">MIN:</span>
-                          <Input 
-                            className="h-10 w-24 text-center font-black border-accent/20 text-accent rounded-lg" 
-                            value={formData.testRefVac}
-                            onChange={(e) => handleInputChange('testRefVac', e.target.value)}
-                          />
-                          <span className="text-xs font-black text-muted-foreground">INHG</span>
-                        </div>
-                      </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="border shadow-sm p-6 space-y-4">
+                  <h4 className="font-bold text-sm uppercase text-primary border-b pb-2">Teste de Vácuo (INHG)</h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase">Referência Técnica (Editável)</Label>
+                      <Input 
+                        className="h-10 font-bold border-accent/20" 
+                        value={formData.testVacRef}
+                        onChange={(e) => handleInputChange('testVacRef', e.target.value)}
+                      />
                     </div>
-
-                    {/* PRESSÃO SECTION */}
-                    <div className="space-y-6 p-8 border-2 border-dashed rounded-[2.5rem] bg-muted/5 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 bg-primary text-white px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-widest shadow-lg">
-                        PRESSÃO (KPA)
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6 mt-4">
-                        <div className="space-y-3">
-                          <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">COMO CHEGOU</Label>
-                          <div className="relative">
-                            <Input 
-                              type="number"
-                              className="h-20 text-center text-3xl font-black border-muted-foreground/20 text-primary bg-white rounded-2xl" 
-                              value={formData.testPresInBefore}
-                              onChange={(e) => handleInputChange('testPresInBefore', e.target.value)}
-                            />
-                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-muted-foreground">KPA</span>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <Label className="text-[9px] font-black text-accent uppercase tracking-widest">PÓS RECUPERAÇÃO</Label>
-                          <div className="relative">
-                            <Input 
-                              type="number"
-                              className="h-20 text-center text-3xl font-black bg-[#E6F7F9] border-accent/30 text-accent rounded-2xl" 
-                              value={formData.testPresInAfter}
-                              onChange={(e) => handleInputChange('testPresInAfter', e.target.value)}
-                            />
-                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-accent">KPA</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-muted/50">
-                        <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">REFERÊNCIA TÉCNICA (EDITÁVEL)</Label>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-black text-primary uppercase">NOMINAL:</span>
-                          <Input 
-                            className="h-10 w-24 text-center font-black border-accent/20 text-accent rounded-lg" 
-                            value={formData.testRefPres}
-                            onChange={(e) => handleInputChange('testRefPres', e.target.value)}
-                          />
-                          <span className="text-xs font-black text-muted-foreground">KPA</span>
-                        </div>
-                      </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase">Valor Medido</Label>
+                      <Input 
+                        type="number"
+                        className="h-12 font-black text-xl text-primary" 
+                        placeholder="0.0"
+                        value={formData.testVacValue}
+                        onChange={(e) => handleInputChange('testVacValue', e.target.value)}
+                      />
                     </div>
                   </div>
-                </div>
+                </Card>
+
+                <Card className="border shadow-sm p-6 space-y-4">
+                  <h4 className="font-bold text-sm uppercase text-primary border-b pb-2">Teste de Pressão (KPA)</h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase">Referência Técnica (Editável)</Label>
+                      <Input 
+                        className="h-10 font-bold border-accent/20" 
+                        value={formData.testPresRef}
+                        onChange={(e) => handleInputChange('testPresRef', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase">Valor Medido</Label>
+                      <Input 
+                        type="number"
+                        className="h-12 font-black text-xl text-primary" 
+                        placeholder="0.0"
+                        value={formData.testPresValue}
+                        onChange={(e) => handleInputChange('testPresValue', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
             </TabsContent>
 
-            {/* SERVIÇOS */}
-            <TabsContent value="servicos" className="mt-0 space-y-8">
-              <div className="flex items-center gap-4 text-primary">
-                <ShieldCheck className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">3. SERVIÇOS REALIZADOS POR <span className="text-accent">DIEGO</span></h2>
+            <TabsContent value="servicos" className="mt-0 space-y-6">
+              <div className="flex items-center gap-3 text-primary mb-4">
+                <ShieldCheck className="h-6 w-6 text-accent" />
+                <h3 className="text-lg font-bold uppercase">Serviços Executados</h3>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {SERVICE_ITEMS.map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-8 border border-muted/20 rounded-[2rem] bg-white hover:border-accent/30 transition-all cursor-pointer group shadow-sm">
-                    <div className="h-6 w-6 rounded-full border-2 border-primary group-hover:border-accent flex items-center justify-center shrink-0">
-                      <div className="h-2 w-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <Label className="font-black text-primary text-[11px] uppercase tracking-tight cursor-pointer leading-tight">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-
-            {/* QUALIDADE */}
-            <TabsContent value="qualidade" className="mt-0 space-y-6">
-              <h2 className="text-2xl font-black text-primary uppercase tracking-tight">Checklist de Qualidade Certificada</h2>
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  "Inspeção dimensional de polias",
-                  "Teste de estanqueidade",
-                  "Calibração de sensores",
-                  "Verificação de torque",
-                  "Análise de lubrificante"
+                  "INSPEÇÃO VISUAL",
+                  "LIMPEZA TÉCNICA",
+                  "POLIMENTO DE POLIAS",
+                  "SUBSTITUIÇÃO DE VEDAÇÕES",
+                  "TESTE EM BANCADA",
+                  "CALIBRAÇÃO FINAL"
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-6 border-2 border-muted/20 rounded-3xl hover:border-accent/30 transition-all bg-white cursor-pointer group shadow-sm">
-                    <input type="checkbox" className="h-8 w-8 rounded-lg border-2 border-primary accent-accent cursor-pointer" id={`q-${i}`} />
-                    <Label htmlFor={`q-${i}`} className="flex-1 cursor-pointer font-black text-primary text-xl uppercase tracking-tighter">{item}</Label>
-                    <Fingerprint className="h-8 w-8 text-muted-foreground/20 group-hover:text-accent transition-colors" />
+                  <div key={i} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                    <input type="checkbox" className="h-5 w-5 rounded border-primary" id={`svc-${i}`} />
+                    <Label htmlFor={`svc-${i}`} className="font-bold text-xs uppercase cursor-pointer">{item}</Label>
                   </div>
                 ))}
               </div>
             </TabsContent>
 
-            {/* MÍDIA */}
+            <TabsContent value="qualidade" className="mt-0 space-y-6">
+              <h3 className="text-lg font-bold text-primary uppercase">Checklist Final</h3>
+              <div className="space-y-3">
+                {[
+                  "CONFORMIDADE DIMENSIONAL",
+                  "ESTANQUEIDADE VALIDADA",
+                  "TORQUE DE MONTAGEM",
+                  "IDENTIFICAÇÃO GRAVADA"
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 p-4 bg-muted/20 rounded-lg">
+                    <input type="checkbox" className="h-5 w-5" id={`chk-${i}`} />
+                    <Label htmlFor={`chk-${i}`} className="font-bold text-xs uppercase">{item}</Label>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+
             <TabsContent value="midia" className="mt-0 space-y-6">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-primary uppercase tracking-tight">EVIDÊNCIAS DIGITAIS</h2>
-                <Button className="bg-accent text-primary font-black gap-2 shadow-xl px-8 h-12 uppercase text-[10px] tracking-widest">
-                  <ImageIcon className="h-5 w-5" /> ANEXAR FOTOS / VÍDEOS
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold text-primary uppercase">Galeria de Evidências</h3>
+                <Button variant="outline" className="gap-2 font-bold uppercase text-[10px]">
+                  <ImageIcon className="h-4 w-4" /> Anexar Mídia
                 </Button>
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="aspect-square relative rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl group bg-slate-100">
-                    <img 
-                      src={`https://picsum.photos/seed/cvt-${i+20}/400`} 
-                      alt="CVT Evidence" 
-                      className="object-cover w-full h-full group-hover:scale-125 transition-transform duration-700"
-                    />
-                  </div>
-                ))}
-                <div className="aspect-square border-4 border-dashed border-muted rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-muted-foreground hover:bg-accent/5 hover:border-accent cursor-pointer transition-all bg-white group shadow-inner">
-                  <PlusCircle className="h-12 w-12 text-muted-foreground/20 group-hover:text-accent" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Adicionar</span>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* GARANTIA */}
-            <TabsContent value="garantia" className="mt-0 space-y-10">
-              <h2 className="text-2xl font-black text-primary uppercase tracking-tight">CERTIFICADO DE GARANTIA</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-4">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Período de Cobertura</Label>
-                  <Select defaultValue="12">
-                    <SelectTrigger className="h-20 border-primary/10 text-2xl font-black uppercase tracking-tighter bg-muted/5">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="6" className="font-bold">06 MESES</SelectItem>
-                      <SelectItem value="12" className="font-bold">12 MESES</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="aspect-square border-2 border-dashed rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted/50 cursor-pointer">
+                  <span className="text-[10px] font-bold">UPLOAD</span>
                 </div>
               </div>
             </TabsContent>
           </CardContent>
         </Tabs>
       </Card>
-      
-      <footer className="py-12 text-center">
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.3em]">
-            © 2026 BRAZILIAN SOLUÇÕES INDUSTRIAIS - SISTEMA DE QUALIDADE CERTIFICAPOLIA
-          </p>
-          <div className="flex items-center gap-4 text-[9px] font-black text-accent uppercase tracking-widest opacity-60">
-            <span>UNIDADE: POLIA-MESTRE-01</span>
-            <span className="h-1 w-1 bg-accent rounded-full" />
-            <span>RESP. TÉCNICO: DIEGO</span>
-          </div>
-        </div>
+
+      <footer className="py-6 text-center border-t mt-12">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          © 2024 CERTIFICA LAUDO CVT | RESPONSÁVEL TÉCNICO: DIEGO
+        </p>
       </footer>
     </div>
   );

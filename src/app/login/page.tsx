@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, Lock, User, Activity } from "lucide-react";
+import { ShieldCheck, Lock, User, Activity, UserPlus } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isFirstAccess, setIsFirstAccess] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const auth = useAuth();
@@ -27,7 +28,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.toUpperCase().trim(), password);
       toast({
         title: "Acesso Autorizado",
         description: "Bem-vindo ao terminal CERTIFICA.",
@@ -37,8 +38,59 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Falha na Autenticação",
-        description: "Credenciais inválidas ou acesso negado.",
+        description: "Credenciais inválidas ou conta não criada. Se for seu primeiro acesso, use a opção abaixo.",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFirstAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // 1. Verificar se o e-mail está autorizado no Firestore (cadastrado pelo admin)
+      // Procuramos pelo e-mail ignorando maiúsculas/minúsculas
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email.toUpperCase().trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        toast({
+          variant: "destructive",
+          title: "Acesso Não Autorizado",
+          description: "Este e-mail ainda não foi autorizado pelo Administrador DIEGO ROSA.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Criar o usuário no Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email.toUpperCase().trim(), password);
+      const user = userCredential.user;
+
+      // 3. Atualizar o ID do documento no Firestore para bater com o UID do Auth (opcional, mas recomendado)
+      // Para manter simples, apenas logamos o sucesso
+      toast({
+        title: "Conta Criada!",
+        description: "Seu primeiro acesso foi configurado com sucesso.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "E-mail já cadastrado",
+          description: "Sua conta já existe. Tente fazer o login normal.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro no Cadastro",
+          description: error.message || "Ocorreu uma falha ao configurar seu acesso.",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -111,13 +163,17 @@ export default function LoginPage() {
         <Card className="border-none shadow-[0_20px_50px_rgba(32,63,96,0.1)] overflow-hidden bg-white/90 backdrop-blur-md">
           <div className="h-3 w-full bg-gradient-to-r from-primary via-accent to-primary animate-gradient-x" />
           <CardHeader className="space-y-1 pt-10 text-center">
-            <CardTitle className="text-3xl font-black text-primary tracking-tight">AUTENTICAÇÃO</CardTitle>
+            <CardTitle className="text-3xl font-black text-primary tracking-tight">
+              {isFirstAccess ? "CONFIGURAR ACESSO" : "AUTENTICAÇÃO"}
+            </CardTitle>
             <CardDescription className="text-muted-foreground font-medium">
-              Ambiente restrito a técnicos e engenheiros especializados.
+              {isFirstAccess 
+                ? "Defina sua senha para o e-mail autorizado pelo administrador." 
+                : "Ambiente restrito a técnicos e engenheiros especializados."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-6 px-8 pb-10">
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={isFirstAccess ? handleFirstAccess : handleLogin} className="space-y-6">
               <div className="space-y-3">
                 <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-primary/60">Credencial (E-mail)</Label>
                 <div className="relative">
@@ -125,7 +181,7 @@ export default function LoginPage() {
                   <Input 
                     id="email" 
                     type="email"
-                    placeholder=" " 
+                    placeholder="tecnico@certifica.com" 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -134,7 +190,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-primary/60">Senha Criptografada</Label>
+                <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-primary/60">Senha</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
@@ -150,12 +206,27 @@ export default function LoginPage() {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 text-white h-14 font-black shadow-xl transition-all hover:scale-[1.02] active:scale-95 text-lg"
+                className={`w-full ${isFirstAccess ? 'bg-accent' : 'bg-primary'} hover:opacity-90 text-white h-14 font-black shadow-xl transition-all hover:scale-[1.02] active:scale-95 text-lg uppercase`}
                 disabled={isLoading}
               >
-                {isLoading ? "PROCESSANDO ACESSO..." : "ACESSAR TERMINAL"}
+                {isLoading 
+                  ? "PROCESSANDO..." 
+                  : isFirstAccess ? "CADASTRAR MINHA SENHA" : "ACESSAR TERMINAL"}
               </Button>
             </form>
+
+            <div className="text-center pt-4">
+              <button 
+                onClick={() => setIsFirstAccess(!isFirstAccess)}
+                className="text-xs font-black text-accent uppercase tracking-widest hover:underline flex items-center justify-center gap-2 mx-auto"
+              >
+                {isFirstAccess ? (
+                  <> <User className="h-3 w-3" /> VOLTAR PARA LOGIN </>
+                ) : (
+                  <> <UserPlus className="h-3 w-3" /> É MEU PRIMEIRO ACESSO </>
+                )}
+              </button>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col border-t bg-muted/20 p-8 space-y-4">
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-accent">

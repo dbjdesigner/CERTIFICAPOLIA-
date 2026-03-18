@@ -27,7 +27,6 @@ export default function ConfigurationPage() {
   const { toast } = useToast();
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState("Technician");
 
   const currentUserDocRef = useMemoFirebase(() => {
@@ -46,20 +45,19 @@ export default function ConfigurationPage() {
   const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
 
   const handleCreateUser = async () => {
-    if (!newUserName || !newUserEmail || !newUserPassword) {
+    if (!newUserName || !newUserEmail) {
       toast({
         variant: "destructive",
         title: "Dados Incompletos",
-        description: "Preencha todos os campos, incluindo a senha.",
+        description: "Preencha o nome e o e-mail corretamente.",
       });
       return;
     }
 
     try {
-      // For the prototype, we save the user data in Firestore.
-      // In a real app, you would use a Cloud Function to create the Auth user
-      // or invite the user via email.
-      const userId = newUserEmail.replace(/[.@]/g, "_");
+      // O Admin apenas AUTORIZA o e-mail no banco de dados.
+      // O usuário criará sua senha na tela de login (Primeiro Acesso).
+      const userId = newUserEmail.toLowerCase().trim().replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
       const permissions = newUserRole === "Master" 
@@ -69,7 +67,7 @@ export default function ConfigurationPage() {
       await setDoc(userRef, {
         id: userId,
         name: newUserName.toUpperCase(),
-        email: newUserEmail,
+        email: newUserEmail.toUpperCase().trim(),
         roleId: newUserRole === "Master" ? "master" : "tech",
         permissions,
         isActive: true,
@@ -78,12 +76,11 @@ export default function ConfigurationPage() {
       });
 
       toast({
-        title: "Usuário Cadastrado",
-        description: `${newUserName.toUpperCase()} foi adicionado com sucesso. Peça ao usuário para realizar o primeiro acesso.`,
+        title: "E-mail Autorizado",
+        description: `${newUserEmail.toUpperCase()} agora pode realizar o 'Primeiro Acesso' na tela de login.`,
       });
       setNewUserName("");
       setNewUserEmail("");
-      setNewUserPassword("");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -96,7 +93,7 @@ export default function ConfigurationPage() {
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteDoc(doc(db, "users", userId));
-      toast({ title: "Usuário Removido" });
+      toast({ title: "Acesso Removido" });
     } catch (error) {
       toast({ variant: "destructive", title: "Erro ao remover" });
     }
@@ -138,10 +135,10 @@ export default function ConfigurationPage() {
       <main className="flex-1 container mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Configuração do Sistema</h1>
+            <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Autorizações do Sistema</h1>
             <p className="text-muted-foreground font-medium flex items-center gap-2">
               <Settings className="h-4 w-4 text-accent" />
-              Terminal de gestão de usuários e autorizações técnicas.
+              Gestão de técnicos autorizados a emitir laudos.
             </p>
           </div>
         </div>
@@ -151,7 +148,7 @@ export default function ConfigurationPage() {
             <CardHeader className="bg-[#0B1A2B] text-white rounded-t-lg">
               <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-accent" />
-                CADASTRAR NOVO TÉCNICO
+                AUTORIZAR TÉCNICO
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-8 space-y-6">
@@ -165,7 +162,7 @@ export default function ConfigurationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">E-mail de Acesso</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">E-mail para Cadastro</Label>
                 <Input 
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
@@ -173,19 +170,6 @@ export default function ConfigurationPage() {
                   placeholder="tecnico@certifica.com" 
                   className="h-12 border-primary/10 font-bold bg-muted/10" 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Senha de Acesso</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40" />
-                  <Input 
-                    value={newUserPassword}
-                    onChange={(e) => setNewUserPassword(e.target.value)}
-                    type="password"
-                    placeholder="••••••••" 
-                    className="h-12 border-primary/10 font-bold bg-muted/10 pl-10" 
-                  />
-                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Nível de Acesso</Label>
@@ -210,8 +194,11 @@ export default function ConfigurationPage() {
                 onClick={handleCreateUser}
                 className="w-full bg-accent hover:bg-accent/90 text-white h-14 font-black shadow-lg transition-all text-sm uppercase"
               >
-                AUTORIZAR ACESSO
+                AUTORIZAR E-MAIL
               </Button>
+              <p className="text-[9px] text-muted-foreground font-medium uppercase text-center leading-relaxed">
+                * Após autorizar o e-mail, o técnico deverá clicar em "Primeiro Acesso" na tela de login.
+              </p>
             </CardContent>
           </Card>
 
@@ -219,7 +206,7 @@ export default function ConfigurationPage() {
             <CardHeader className="bg-muted/30 border-b">
               <CardTitle className="text-lg font-black text-primary uppercase tracking-tight flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                USUÁRIOS AUTORIZADOS
+                EQUIPE AUTORIZADA
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -228,7 +215,7 @@ export default function ConfigurationPage() {
                   <thead className="bg-muted/50 border-b">
                     <tr className="text-left">
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Nome</th>
-                      <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">E-mail</th>
+                      <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">E-mail Autorizado</th>
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Nível</th>
                       <th className="px-6 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest text-right">Ação</th>
                     </tr>

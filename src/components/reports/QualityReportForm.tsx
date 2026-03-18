@@ -1,7 +1,8 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,11 +32,15 @@ import {
   Hash,
   Plus,
   Wrench,
-  CheckCircle
+  CheckCircle,
+  FileText
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, collection } from "firebase/firestore";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const SELLERS = [
   "DOUGLAS",
@@ -59,7 +64,12 @@ const CVT_MODELS = [
 ];
 
 export function QualityReportForm() {
+  const params = useParams();
+  const router = useRouter();
   const { toast } = useToast();
+  const { user } = useUser();
+  const db = useFirestore();
+  
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [status, setStatus] = useState<'Budget' | 'InRecovery' | 'Published'>('Budget');
@@ -68,8 +78,8 @@ export function QualityReportForm() {
   const [formData, setFormData] = useState({
     equipmentType: "JF011",
     customEquipmentType: "",
-    model: "MODELO_CVT_2026",
-    manufacturer: "BRAZILIAN_SYSTEMS",
+    model: "",
+    manufacturer: "",
     serialNumber: "CF*",
     clientName: "",
     sellerName: "",
@@ -92,6 +102,22 @@ export function QualityReportForm() {
     secPresAntes: "",
     secPresDepois: ""
   });
+
+  // Load existing report if ID is provided
+  const reportId = params.id as string;
+  const reportRef = useMemoFirebase(() => {
+    if (!db || !reportId) return null;
+    return doc(db, "reports", reportId);
+  }, [db, reportId]);
+  
+  const { data: existingReport, isLoading: isReportLoading } = useDoc(reportRef);
+
+  useEffect(() => {
+    if (existingReport) {
+      setFormData(prev => ({ ...prev, ...existingReport }));
+      setStatus(existingReport.status || 'Budget');
+    }
+  }, [existingReport]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -146,8 +172,31 @@ export function QualityReportForm() {
     }
   };
 
+  const saveReport = (newStatus?: typeof status) => {
+    const finalStatus = newStatus || status;
+    const finalId = reportId || doc(collection(db, "reports")).id;
+    const finalRef = doc(db, "reports", finalId);
+
+    const reportData = {
+      ...formData,
+      id: finalId,
+      status: finalStatus,
+      technicianId: user?.uid,
+      reportNumber: formData.serialNumber !== "CF*" ? `QC-${formData.serialNumber.replace("CF*", "")}` : `QC-${Math.floor(Math.random() * 10000)}`,
+      updatedAt: new Date().toISOString(),
+      createdAt: formData.createdAt || new Date().toISOString()
+    };
+
+    setDocumentNonBlocking(finalRef, reportData, { merge: true });
+    
+    if (!reportId) {
+      router.push(`/reports/${finalId}`);
+    }
+  };
+
   const handleApproveBudget = () => {
     setStatus('InRecovery');
+    saveReport('InRecovery');
     toast({
       title: "Orçamento Aprovado",
       description: "O registro agora está liberado para execução e recuperação.",
@@ -156,6 +205,7 @@ export function QualityReportForm() {
 
   const handleFinalizeReport = () => {
     setStatus('Published');
+    saveReport('Published');
     toast({
       title: "Laudo Finalizado",
       description: "Certificado de qualidade emitido com sucesso.",
@@ -169,7 +219,6 @@ export function QualityReportForm() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Teste de Vácuo */}
         <Card className="border shadow-sm overflow-hidden">
           <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
             <span className="text-[10px] font-black uppercase text-primary">Vácuo (INHG)</span>
@@ -210,7 +259,6 @@ export function QualityReportForm() {
           </CardContent>
         </Card>
 
-        {/* Teste de Pressão */}
         <Card className="border shadow-sm overflow-hidden">
           <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
             <span className="text-[10px] font-black uppercase text-primary">Pressão (KPA)</span>
@@ -254,16 +302,25 @@ export function QualityReportForm() {
     </div>
   );
 
+  if (isReportLoading && reportId) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 space-y-4">
+        <Activity className="h-12 w-12 animate-spin text-accent" />
+        <p className="font-black text-primary uppercase tracking-widest text-xs">Carregando Dados do Laudo...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-6 rounded-xl shadow-sm border gap-4">
         <div className="flex items-center gap-4">
           <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-            {status === 'Published' ? <CheckCircle className="h-6 w-6 text-emerald-600" /> : <Award className="h-6 w-6 text-primary" />}
+            {status === 'Published' ? <CheckCircle className="h-6 w-6 text-emerald-600" /> : status === 'InRecovery' ? <Wrench className="h-6 w-6 text-blue-600" /> : <FileText className="h-6 w-6 text-amber-600" />}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Certificação de Qualidade CVT</h2>
+              <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Fluxo de Qualidade CVT</h2>
               <Badge 
                 variant={status === 'Published' ? "default" : "outline"} 
                 className={
@@ -277,32 +334,35 @@ export function QualityReportForm() {
                  "ORÇAMENTO PENDENTE"}
               </Badge>
             </div>
-            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Responsável Técnico: <span className="text-accent">DIEGO</span></p>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Equipamento: <span className="text-accent">{formData.equipmentType} {formData.customEquipmentType}</span></p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
           {status === 'Budget' && (
             <Button 
-              className="bg-amber-500 hover:bg-amber-600 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
+              className="flex-1 lg:flex-none bg-amber-500 hover:bg-amber-600 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
               onClick={handleApproveBudget}
             >
               <ThumbsUp className="h-4 w-4" />
-              APROVAR E INICIAR RECUPERAÇÃO
+              APROVAR ORÇAMENTO (CLIENTE AUTORIZOU)
             </Button>
           )}
           {status === 'InRecovery' && (
             <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
+              className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
               onClick={handleFinalizeReport}
             >
-              <Wrench className="h-4 w-4" />
-              FINALIZAR E CERTIFICAR
+              <CheckCircle2 className="h-4 w-4" />
+              FINALIZAR E LIBERAR LAUDO
             </Button>
           )}
           <Button 
             variant="outline"
-            className="border-primary/20 text-primary gap-2 font-black uppercase text-xs h-12 px-8"
-            onClick={() => toast({ title: "Laudo Sincronizado", description: "O registro foi salvo com sucesso no banco de dados." })}
+            className="flex-1 lg:flex-none border-primary/20 text-primary gap-2 font-black uppercase text-xs h-12 px-8"
+            onClick={() => {
+              saveReport();
+              toast({ title: "Laudo Sincronizado", description: "Dados salvos no banco de dados." });
+            }}
           >
             <Save className="h-4 w-4" />
             SALVAR RASCUNHO
@@ -318,8 +378,7 @@ export function QualityReportForm() {
               { id: "testes", label: "2. Testes Hidráulicos" },
               { id: "servicos", label: "3. Serviços & Peças" },
               { id: "qualidade", label: "4. Controle Final" },
-              { id: "garantia", label: "5. Garantia" },
-              { id: "midia", label: "6. Anexos" }
+              { id: "garantia", label: "5. Garantia" }
             ].map((tab) => (
               <TabsTrigger 
                 key={tab.id}
@@ -376,12 +435,12 @@ export function QualityReportForm() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Valor do Serviço (R$)</Label>
+                  <Label className="text-[10px] font-black uppercase text-accent tracking-widest">Valor do Serviço (R$)</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-accent" />
                     <Input 
                       placeholder="0,00" 
-                      className="h-12 border-primary/10 font-black bg-muted/5 pl-10"
+                      className="h-14 border-accent/20 focus:border-accent font-black bg-accent/5 pl-10 text-lg"
                       value={formData.value}
                       onChange={(e) => handleNumericInput('value', e.target.value)}
                     />
@@ -430,8 +489,8 @@ export function QualityReportForm() {
                       <SelectValue placeholder="Selecione a Operação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="recovery" className="font-black">RECUPERAÇÃO TÉCNICA</SelectItem>
-                      <SelectItem value="sale" className="font-black">VENDA TÉCNICA</SelectItem>
+                      <SelectItem value="recovery" className="font-black uppercase">RECUPERAÇÃO TÉCNICA</SelectItem>
+                      <SelectItem value="sale" className="font-black uppercase">VENDA TÉCNICA</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -451,20 +510,6 @@ export function QualityReportForm() {
                   </div>
                 </div>
               </div>
-
-              {formData.operationType && (
-                <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-primary/10 animate-in fade-in slide-in-from-top-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <ClipboardCheck className="h-5 w-5 text-accent" />
-                    <h4 className="font-black text-primary uppercase text-sm tracking-tight">Detalhes do Fluxo: {formData.operationType === 'recovery' ? 'RECUPERAÇÃO' : 'VENDA'}</h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                    {formData.operationType === 'recovery' 
-                      ? "Fluxo focado na análise de entrada, testes hidráulicos comparativos e certificação de performance nominal pós-manutenção."
-                      : "Fluxo focado na validação de saída, configuração conforme especificações de venda e emissão de termo de garantia de montagem."}
-                  </p>
-                </div>
-              )}
             </TabsContent>
 
             <TabsContent value="testes" className="mt-0 space-y-12">
@@ -472,7 +517,6 @@ export function QualityReportForm() {
                 <Activity className="h-6 w-6 text-accent" />
                 <h3 className="text-xl font-black uppercase tracking-tighter">Comparativo de Performance Hidráulica</h3>
               </div>
-              
               <div className="space-y-12">
                 <TestSection title="Polia Primária" prefix="pri" />
                 <div className="border-t border-dashed" />
@@ -526,11 +570,6 @@ export function QualityReportForm() {
             </TabsContent>
 
             <TabsContent value="garantia" className="mt-0 space-y-8">
-              <div className="flex items-center gap-3 text-primary border-b pb-4">
-                <Award className="h-6 w-6 text-accent" />
-                <h3 className="text-xl font-black text-primary uppercase tracking-tighter">Certificado de Garantia</h3>
-              </div>
-              
               <Card className="border-4 border-accent/20 rounded-[2.5rem] overflow-hidden shadow-2xl bg-[#0B1A2B] text-white p-12 relative">
                 <div className="absolute top-0 right-0 p-8 opacity-10">
                   <ShieldCheck className="h-48 w-48 text-accent" />
@@ -539,7 +578,7 @@ export function QualityReportForm() {
                   <div className="space-y-4">
                     <h4 className="text-4xl font-black uppercase tracking-tighter text-accent">GARANTIA DE ALTA PRECISÃO</h4>
                     <p className="text-lg font-bold text-white/80 leading-relaxed">
-                      Este laudo técnico certifica que a unidade industrial CVT passou por rigorosos processos de recuperação e testes hidráulicos, atingindo os padrões nominais de performance.
+                      Este laudo técnico certifica que a unidade industrial CVT passou por processos de recuperação e testes hidráulicos atingindo os padrões nominais.
                     </p>
                   </div>
                   
@@ -550,71 +589,16 @@ export function QualityReportForm() {
                         VALIDADE: <span className="text-accent underline decoration-white/20 underline-offset-8">03 MESES</span>
                       </p>
                     </div>
-                    <div className="h-px bg-white/20 w-full" />
                     <p className="text-sm font-bold text-white/60 uppercase tracking-widest leading-loose">
-                      A garantia cobre exclusivamente o <span className="text-white">SERVIÇO EXECUTADO</span> e a <span className="text-white">MONTAGEM TÉCNICA</span> realizada. Danos por uso indevido ou contaminação externa não são cobertos.
+                      A garantia cobre exclusivamente o <span className="text-white">SERVIÇO EXECUTADO</span>.
                     </p>
-                  </div>
-
-                  <div className="pt-6">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-64 h-px bg-accent/50 mb-4" />
-                      <p className="text-xl font-black uppercase tracking-tighter">DIEGO</p>
-                      <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">RESPONSÁVEL TÉCNICO CERTIFICADO</p>
-                    </div>
                   </div>
                 </div>
               </Card>
             </TabsContent>
-
-            <TabsContent value="midia" className="mt-0 space-y-8">
-              <div className="flex justify-between items-center border-b pb-4">
-                <h3 className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5 text-accent" />
-                  Galeria de Evidências Técnicas
-                </h3>
-                <Button variant="outline" className="gap-2 font-black uppercase text-[10px] border-primary/20 h-10 px-6">
-                  <ImageIcon className="h-4 w-4" /> ANEXAR FOTO/VÍDEO
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="aspect-square bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/30 transition-all cursor-pointer group shadow-inner">
-                    <ImageIcon className="h-10 w-10 mb-2 opacity-20 group-hover:opacity-100 transition-opacity" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">FOTO {n}</span>
-                  </div>
-                ))}
-                <div className="aspect-square border-2 border-dashed rounded-[2rem] flex items-center justify-center text-muted-foreground hover:bg-accent/5 cursor-pointer border-accent/30 bg-accent/5 transition-all shadow-sm group">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="bg-accent/10 p-4 rounded-full group-hover:bg-accent group-hover:text-white transition-all">
-                      <Activity className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] font-black text-accent uppercase tracking-widest">ADICIONAR</span>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
           </CardContent>
         </Tabs>
       </Card>
-
-      <footer className="py-12 text-center border-t mt-16 bg-muted/5 rounded-t-[3rem]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-3 mb-2">
-            <ShieldCheck className="h-6 w-6 text-accent" />
-            <p className="text-[11px] font-black text-primary uppercase tracking-[0.4em]">
-              © 2024 CERTIFICA LAUDO CVT | SISTEMA DE ALTA PRECISÃO INDUSTRIAL
-            </p>
-          </div>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            Responsável Técnico: <span className="text-accent font-black">DIEGO</span> | Versão de Engenharia: V1.5.0-PRO
-          </p>
-          <div className="flex gap-4 mt-4">
-            <div className="bg-emerald-500/10 text-emerald-600 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter">CONEXÃO SEGURA AES-256</div>
-            <div className="bg-accent/10 text-accent px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter">SISTEMA VALIDADO</div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

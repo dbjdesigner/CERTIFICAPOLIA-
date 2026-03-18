@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * PROTOTYPING MODE SECURITY RULES
+     * 
+     * Core Philosophy:
+     * This ruleset implements a robust Role-Based Access Control (RBAC) system centered around 
+     * a "Master User" (Mestre) paradigm. It prioritizes strict authorization (who can access what) 
+     * while maintaining schema flexibility for rapid prototyping.
+     * 
+     * Data Structure:
+     * - /users/{userId}: Store user profiles and denormalized permissions.
+     * - /roles/{roleId}: Store role definitions and granular permission lists.
+     * 
+     * Key Security Decisions:
+     * 1. Authorization Independence: User permissions are denormalized (copied) directly into 
+     *    the User document. This allows the rules to verify a user's capabilities by fetching 
+     *    their own profile document once.
+     * 2. Master User Authority: Users with the 'can_manage_users' permission act as "Master Users," 
+     *    granted the ability to register new users, manage roles, and oversee all account data.
+     * 3. Owner Restrictions: Standard users are restricted to viewing and managing their 
+     *    own profile data, with no visibility into other users' accounts unless authorized.
+     * 4. Relational Integrity: On creation, the rules enforce that the document ID matches 
+     *    the internal 'id' field to ensure path-to-data consistency.
+     */
+
+    // --- Helper Functions ---
+
+    /** @description Checks if the request is from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Checks if the requesting user has a specific permission in their profile. */
+    function hasPermission(permission) {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny([permission]);
+    }
+
+    /** @description Checks if the requesting user is a "Master User" (Mestre). */
+    function isMaster() {
+      return hasPermission('can_manage_users');
+    }
+
+    /** @description Combines ownership check with existence check for updates/deletes. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the User collection. Supports Master-led user registration and owner-based profile access.
+     * @path /users/{userId}
+     * @allow (get) If user is the owner or a Master.
+     * @allow (list) Only if user is a Master.
+     * @allow (create) If user is a Master (to register others) or the owner (self-registration).
+     * @deny (create) If the internal 'id' field does not match the document path ID.
+     * @principle Enforces identity-based access and Master-level management capabilities.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isMaster();
+      allow list: if isMaster();
+      allow create: if (isMaster() || isOwner(userId)) && request.resource.data.id == userId;
+      allow update: if (isExistingOwner(userId) || isMaster()) && request.resource.data.id == resource.data.id;
+      allow delete: if resource != null && isMaster();
+    }
+
+    /**
+     * @description Rules for Role definitions. Publicly readable by authenticated users, manageable only by Masters.
+     * @path /roles/{roleId}
+     * @allow (get/list) Any signed-in user (to understand available roles/permissions).
+     * @allow (write) Only Master users.
+     * @deny (update/delete) If the document does not exist.
+     * @principle Restricts system configuration (Roles) to administrative (Master) users only.
+     */
+    match /roles/{roleId} {
+      allow get, list: if isSignedIn();
+      allow create: if isMaster();
+      allow update, delete: if resource != null && isMaster();
+    }
+  }
+}

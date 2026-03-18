@@ -54,6 +54,17 @@ const COMMON_SERVICES = [
   "TROCA DE FILTROS"
 ];
 
+const QUALITY_CHECKS = [
+  "ESTANQUEIDADE POSITIVA",
+  "PRESSÃO DE LINHA ESTÁVEL",
+  "AUSÊNCIA DE LIMALHA",
+  "SENSORES DE ROTAÇÃO OK",
+  "SOLENOIDES DENTRO DA FAIXA",
+  "POLIAS SEM ESCORIAÇÕES",
+  "CORPO DE VÁLVULAS CALIBRADO",
+  "APROVADO EM TESTE DE BANCADA"
+];
+
 export function QualityReportForm() {
   const params = useParams();
   const router = useRouter();
@@ -78,6 +89,7 @@ export function QualityReportForm() {
     value: "",
     partialDescription: "",
     selectedServices: [] as string[],
+    selectedQualityChecks: [] as string[],
     additionalServices: "",
     qualityNotes: "UNIDADE APROVADA EM TESTE DE BANCADA COM PRESSÃO NOMINAL.",
     priVacRef: "24",
@@ -132,6 +144,16 @@ export function QualityReportForm() {
         ? current.filter(s => s !== service)
         : [...current, service];
       return { ...prev, selectedServices: updated };
+    });
+  };
+
+  const handleQualityCheckToggle = (check: string) => {
+    setFormData(prev => {
+      const current = prev.selectedQualityChecks || [];
+      const updated = current.includes(check)
+        ? current.filter(c => c !== check)
+        : [...current, check];
+      return { ...prev, selectedQualityChecks: updated };
     });
   };
 
@@ -435,6 +457,20 @@ export function QualityReportForm() {
                   <ClipboardCheck className="h-6 w-6 text-accent" />
                   <h3 className="text-xl font-black text-primary uppercase tracking-tight">Parecer de Qualidade</h3>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {QUALITY_CHECKS.map((check) => (
+                    <div key={check} className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => handleQualityCheckToggle(check)}>
+                      <Checkbox 
+                        id={check} 
+                        checked={(formData.selectedQualityChecks || []).includes(check)}
+                        onCheckedChange={() => handleQualityCheckToggle(check)}
+                      />
+                      <Label htmlFor={check} className="text-[10px] font-black uppercase cursor-pointer leading-tight">{check}</Label>
+                    </div>
+                  ))}
+                </div>
+
                 <div className="space-y-4">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground">Observações de Validação Técnica</Label>
                   <Textarea 
@@ -513,6 +549,9 @@ export function QualityReportForm() {
                     <div className="flex flex-wrap gap-2 mb-4">
                       {formData.selectedServices?.map(s => (
                         <Badge key={s} variant="outline" className="border-accent text-accent font-black text-[8px] uppercase">{s}</Badge>
+                      ))}
+                      {formData.selectedQualityChecks?.map(c => (
+                        <Badge key={c} variant="outline" className="border-emerald-600 text-emerald-600 font-black text-[8px] uppercase">{c}</Badge>
                       ))}
                     </div>
                     <p className="text-[10px] font-bold text-primary whitespace-pre-wrap">{formData.additionalServices || "Nenhum serviço extra listado."}</p>

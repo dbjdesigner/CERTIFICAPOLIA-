@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   const reportsQuery = useMemoFirebase(() => {
     if (!db || !user || !currentUserDoc) return null;
-    // Agora todos visualizam todos os relatórios para compor os valores totais
+    // Todos visualizam todos os relatórios para compor os valores do terminal
     return collection(db, "reports");
   }, [db, user, currentUserDoc]);
 
@@ -54,7 +54,8 @@ export default function Dashboard() {
 
   const calculateTotalValue = (items: any[]) => {
     const total = items.reduce((acc, curr) => {
-      const val = typeof curr.value === 'string' ? parseFloat(curr.value.replace(/[^\d]/g, "")) / 100 : (parseFloat(curr.value) || 0);
+      // Converte o valor para número sem dividir por 100
+      const val = parseFloat(curr.value) || 0;
       return acc + val;
     }, 0);
     return total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -103,7 +104,7 @@ export default function Dashboard() {
               </td>
               <td className="px-8 py-5 text-muted-foreground font-black uppercase text-xs">{report.clientName || report.client}</td>
               <td className="px-8 py-5 text-accent font-black text-xs">
-                {report.value ? `R$ ${report.value}` : "R$ 0,00"}
+                {report.value ? (parseFloat(report.value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00"}
               </td>
               <td className="px-8 py-5 text-right">
                 <Button 

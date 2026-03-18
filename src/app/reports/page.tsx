@@ -38,7 +38,7 @@ export default function ReportsListPage() {
 
   const reportsQuery = useMemoFirebase(() => {
     if (!db || !user || !currentUserDoc) return null;
-    // Agora todos os técnicos visualizam a lista completa com valores
+    // Base de dados completa visível para toda a equipe
     return collection(db, "reports");
   }, [db, user, currentUserDoc]);
 
@@ -73,6 +73,7 @@ export default function ReportsListPage() {
     const headers = ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Valor", "Data"];
     
     const rows = filteredReports.map(r => {
+      const formattedValue = r.value ? (parseFloat(r.value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
       return [
         r.reportNumber || 'N/A',
         r.equipmentType || 'N/A',
@@ -80,7 +81,7 @@ export default function ReportsListPage() {
         r.clientName || 'N/A',
         r.serialNumber || 'N/A',
         r.status || 'N/A',
-        r.value || "0,00",
+        formattedValue,
         r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : 'N/A'
       ];
     });
@@ -174,7 +175,9 @@ export default function ReportsListPage() {
                         <span className="text-muted-foreground font-black uppercase text-[10px]">{report.clientName}</span>
                       </td>
                       <td className="px-6 py-5">
-                         <span className="text-accent font-black text-xs">R$ {report.value || "0,00"}</span>
+                         <span className="text-accent font-black text-xs">
+                           {report.value ? (parseFloat(report.value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00"}
+                         </span>
                       </td>
                       <td className="px-6 py-5">
                         <Badge 

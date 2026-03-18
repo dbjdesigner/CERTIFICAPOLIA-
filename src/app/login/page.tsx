@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -125,7 +124,7 @@ export default function LoginPage() {
                   <Input 
                     id="email" 
                     type="email"
-                    placeholder="3DRIMPRESSOES@GMAIL.COM" 
+                    placeholder="Digite seu e-mail" 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -140,7 +139,7 @@ export default function LoginPage() {
                   <Input 
                     id="password" 
                     type="password" 
-                    placeholder="Diego1810@"
+                    placeholder="Sua senha secreta"
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

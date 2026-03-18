@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Select, 
   SelectContent, 
@@ -41,6 +42,18 @@ import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const SELLERS = ["DOUGLAS", "LEANDRO", "LUIZ", "MERCADOLIVRE", "PAMELA", "RODRIGO", "RONALDO", "THIAGO", "VINICIUS"];
 
+const COMMON_SERVICES = [
+  "LIMPEZA QUÍMICA POR ULTRASSOM",
+  "TROCA DE CORREIA METÁLICA",
+  "RETÍFICA DE POLIA PRIMÁRIA",
+  "RETÍFICA DE POLIA SECUNDÁRIA",
+  "TROCA DE ROLAMENTOS",
+  "SUBSTITUIÇÃO DE VEDAÇÕES (KITS)",
+  "CALIBRAÇÃO DE CORPO DE VÁLVULAS",
+  "TESTE DE ESTANQUEIDADE",
+  "TROCA DE FILTROS"
+];
+
 export function QualityReportForm() {
   const params = useParams();
   const router = useRouter();
@@ -64,7 +77,8 @@ export function QualityReportForm() {
     operationType: "recovery" as 'recovery' | 'sale',
     value: "",
     partialDescription: "",
-    servicesPerformed: "",
+    selectedServices: [] as string[],
+    additionalServices: "",
     qualityNotes: "UNIDADE APROVADA EM TESTE DE BANCADA COM PRESSÃO NOMINAL.",
     priVacRef: "24",
     priVacAntes: "",
@@ -102,13 +116,23 @@ export function QualityReportForm() {
     }
   }, [existingReport]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleNumericInput = (field: string, value: string) => {
     const numericValue = value.replace(/[^\d]/g, "");
     handleInputChange(field, numericValue);
+  };
+
+  const handleServiceToggle = (service: string) => {
+    setFormData(prev => {
+      const current = prev.selectedServices || [];
+      const updated = current.includes(service)
+        ? current.filter(s => s !== service)
+        : [...current, service];
+      return { ...prev, selectedServices: updated };
+    });
   };
 
   const handleAiAssist = async () => {
@@ -147,7 +171,7 @@ export function QualityReportForm() {
       id: finalId,
       status: finalStatus,
       technicianId: user.uid,
-      technicianName: currentUserDoc?.name || "Técnico Certificador",
+      technicianName: currentUserDoc?.name || "DIEGO ROSA",
       reportNumber: formData.serialNumber !== "CF*" ? `QC-${formData.serialNumber.replace("CF*", "")}` : `QC-${Math.floor(Math.random() * 10000)}`,
       updatedAt: new Date().toISOString(),
       createdAt: formData.createdAt || new Date().toISOString()
@@ -379,13 +403,27 @@ export function QualityReportForm() {
                   <Wrench className="h-6 w-6 text-accent" />
                   <h3 className="text-xl font-black text-primary uppercase tracking-tight">Serviços Executados</h3>
                 </div>
-                <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Descrição Técnica dos Serviços de Recuperação</Label>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {COMMON_SERVICES.map((service) => (
+                    <div key={service} className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => handleServiceToggle(service)}>
+                      <Checkbox 
+                        id={service} 
+                        checked={(formData.selectedServices || []).includes(service)}
+                        onCheckedChange={() => handleServiceToggle(service)}
+                      />
+                      <Label htmlFor={service} className="text-[10px] font-black uppercase cursor-pointer leading-tight">{service}</Label>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-6">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Informações Adicionais / Observações Técnicas</Label>
                   <Textarea 
-                    className="min-h-[250px] font-bold text-primary p-6 bg-muted/20 border-primary/10" 
-                    placeholder="Liste os serviços, trocas de peças e ajustes realizados..."
-                    value={formData.servicesPerformed}
-                    onChange={(e) => handleInputChange('servicesPerformed', e.target.value)}
+                    className="min-h-[150px] font-bold text-primary p-6 bg-muted/20 border-primary/10" 
+                    placeholder="Descreva detalhes específicos ou serviços não listados acima..."
+                    value={formData.additionalServices}
+                    onChange={(e) => handleInputChange('additionalServices', e.target.value)}
                   />
                 </div>
               </section>
@@ -420,7 +458,7 @@ export function QualityReportForm() {
                       <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-accent">Responsável Técnico</p>
                       <p className="font-black text-sm uppercase mt-1">
-                        {currentUserDoc?.roleId === 'master' ? "DIEGO ROSA" : (currentUserDoc?.name || "Técnico Certificador")}
+                        {currentUserDoc?.name || "DIEGO ROSA"}
                       </p>
                     </div>
                     <div className="text-center">
@@ -472,14 +510,19 @@ export function QualityReportForm() {
                <div className="space-y-4">
                   <h4 className="font-black text-primary uppercase text-sm border-l-4 border-accent pl-2">Serviços e Qualidade</h4>
                   <div className="p-6 border rounded-xl bg-muted/5 min-h-[100px]">
-                    <p className="text-[10px] font-bold text-primary whitespace-pre-wrap">{formData.servicesPerformed || "Nenhum serviço extra listado."}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {formData.selectedServices?.map(s => (
+                        <Badge key={s} variant="outline" className="border-accent text-accent font-black text-[8px] uppercase">{s}</Badge>
+                      ))}
+                    </div>
+                    <p className="text-[10px] font-bold text-primary whitespace-pre-wrap">{formData.additionalServices || "Nenhum serviço extra listado."}</p>
                     <p className="text-[10px] font-black text-accent mt-4 border-t pt-2">{formData.qualityNotes}</p>
                   </div>
                </div>
 
                <div className="mt-12 text-center pt-8">
                   <Zap className="h-8 w-8 text-accent mx-auto mb-2 opacity-30" />
-                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA POR DIEGO ROSA - TERMINAL CERTIFICA LAUDO CVT</p>
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA POR {currentUserDoc?.name || "DIEGO ROSA"} - TERMINAL CERTIFICA LAUDO CVT</p>
                </div>
             </div>
           </CardContent>

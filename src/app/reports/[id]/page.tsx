@@ -4,7 +4,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { QualityReportForm } from "@/components/reports/QualityReportForm";
-import { ChevronLeft, Printer, Share2, FileText, Activity, Trash2 } from "lucide-react";
+import { ChevronLeft, Printer, Share2, FileText, Activity, Trash2, Download } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase";
@@ -31,21 +31,25 @@ export default function ViewReportPage() {
     if (confirm("Deseja realmente excluir este laudo permanentemente?")) {
       try {
         await deleteDoc(doc(db, "reports", reportId));
-        toast({ title: "Laudo Removido", description: "O registro foi excluído do terminal." });
+        toast({ title: "Laudo Removido" });
         router.push("/");
       } catch (e) {
-        toast({ variant: "destructive", title: "Erro ao remover", description: "Você não tem permissão para excluir este registro." });
+        toast({ variant: "destructive", title: "Erro ao remover", description: "Permissão negada." });
       }
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Navbar />
-        <main className="flex-1 flex flex-col items-center justify-center space-y-4">
+        <main className="flex-1 flex flex-col items-center justify-center">
           <Activity className="h-10 w-10 animate-spin text-accent" />
-          <p className="font-black text-primary uppercase tracking-widest text-xs">Acessando Banco de Dados...</p>
+          <p className="font-black text-primary uppercase mt-4 text-xs">Carregando Terminal...</p>
         </main>
       </div>
     );
@@ -56,16 +60,9 @@ export default function ViewReportPage() {
       <div className="flex flex-col min-h-screen bg-background">
         <Navbar />
         <main className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-          <div className="bg-destructive/10 p-6 rounded-full">
-            <FileText className="h-16 w-16 text-destructive" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black text-primary uppercase">REGISTRO NÃO LOCALIZADO</h1>
-            <p className="text-muted-foreground font-medium">O laudo solicitado não existe ou você não possui autorização de acesso.</p>
-          </div>
-          <Link href="/">
-            <Button className="bg-primary h-12 px-8 font-black uppercase">VOLTAR AO TERMINAL</Button>
-          </Link>
+          <FileText className="h-20 w-20 text-muted-foreground opacity-20" />
+          <h1 className="text-2xl font-black text-primary uppercase">Registro Não Localizado</h1>
+          <Link href="/"><Button className="bg-primary">Voltar ao Terminal</Button></Link>
         </main>
       </div>
     );
@@ -73,42 +70,33 @@ export default function ViewReportPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
+      <div className="print:hidden"><Navbar /></div>
       
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl space-y-6 print:p-0 print:max-w-none">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5">
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
+              <Button variant="ghost" size="icon" className="rounded-full"><ChevronLeft className="h-6 w-6" /></Button>
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Laudo {report.reportNumber}</h1>
-                <span className={`text-[10px] font-black px-3 py-1 rounded uppercase border-none ${
+                <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">{report.reportNumber}</h1>
+                <Badge className={
                   report.status === 'Published' ? 'bg-emerald-500 text-white' : 
-                  report.status === 'InRecovery' ? 'bg-blue-500 text-white' : 
-                  'bg-amber-500 text-white'
-                }`}>
+                  report.status === 'InRecovery' ? 'bg-blue-500 text-white' : 'bg-amber-500 text-white'
+                }>
                   {report.status === 'Published' ? 'CERTIFICADO' : 
                    report.status === 'InRecovery' ? 'RECUPERAÇÃO' : 'ORÇAMENTO'}
-                </span>
+                </Badge>
               </div>
-              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">
-                Cliente: <span className="text-primary">{report.clientName || "NÃO INFORMADO"}</span>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1">
+                Cliente: <span className="text-accent">{report.clientName || "N/A"}</span>
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="icon" title="Imprimir" className="border-primary/10">
-              <Printer className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" title="Compartilhar" className="border-primary/10">
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" className="gap-2 border-primary/10 font-bold text-xs uppercase">
-              <FileText className="h-4 w-4" /> PDF
+            <Button variant="outline" className="gap-2 font-black uppercase text-[10px]" onClick={handlePrint}>
+              <Printer className="h-4 w-4" /> Exportar / Imprimir
             </Button>
             <Button 
               variant="ghost" 

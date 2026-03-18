@@ -30,7 +30,8 @@ import {
   Wrench,
   CheckCircle,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Award
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -71,6 +72,8 @@ export function QualityReportForm() {
     priVacAntes: "",
     priVacDepois: "",
     priPresRef: "510",
+    priVacAntesRef: "",
+    priVacDepoisRef: "",
     priPresAntes: "",
     priPresDepois: "",
     // Polia Secundaria

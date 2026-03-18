@@ -29,7 +29,9 @@ import {
   DollarSign,
   ThumbsUp,
   Hash,
-  Plus
+  Plus,
+  Wrench,
+  CheckCircle
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -60,7 +62,7 @@ export function QualityReportForm() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isApproved, setIsApproved] = useState(false);
+  const [status, setStatus] = useState<'Budget' | 'InRecovery' | 'Published'>('Budget');
   const [showCustomModel, setShowCustomModel] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -145,10 +147,18 @@ export function QualityReportForm() {
   };
 
   const handleApproveBudget = () => {
-    setIsApproved(true);
+    setStatus('InRecovery');
     toast({
       title: "Orçamento Aprovado",
-      description: "O registro agora está liberado para execução e certificação.",
+      description: "O registro agora está liberado para execução e recuperação.",
+    });
+  };
+
+  const handleFinalizeReport = () => {
+    setStatus('Published');
+    toast({
+      title: "Laudo Finalizado",
+      description: "Certificado de qualidade emitido com sucesso.",
     });
   };
 
@@ -249,38 +259,53 @@ export function QualityReportForm() {
       <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center gap-4">
           <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-            <Award className="h-6 w-6 text-primary" />
+            {status === 'Published' ? <CheckCircle className="h-6 w-6 text-emerald-600" /> : <Award className="h-6 w-6 text-primary" />}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Certificação de Qualidade CVT</h2>
               <Badge 
-                variant={isApproved ? "default" : "outline"} 
-                className={isApproved ? "bg-emerald-500 text-white border-none font-black text-[10px] uppercase" : "border-amber-500 text-amber-600 font-black text-[10px] uppercase"}
+                variant={status === 'Published' ? "default" : "outline"} 
+                className={
+                  status === 'Published' ? "bg-emerald-500 text-white border-none font-black text-[10px] uppercase" : 
+                  status === 'InRecovery' ? "bg-blue-500 text-white border-none font-black text-[10px] uppercase" :
+                  "border-amber-500 text-amber-600 font-black text-[10px] uppercase"
+                }
               >
-                {isApproved ? "APROVADO" : "ORÇAMENTO PENDENTE"}
+                {status === 'Published' ? "CERTIFICADO" : 
+                 status === 'InRecovery' ? "EM RECUPERAÇÃO" : 
+                 "ORÇAMENTO PENDENTE"}
               </Badge>
             </div>
             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Responsável Técnico: <span className="text-accent">DIEGO</span></p>
           </div>
         </div>
         <div className="flex gap-3">
-          {!isApproved && (
+          {status === 'Budget' && (
             <Button 
-              variant="outline"
-              className="border-amber-500 text-amber-600 hover:bg-amber-50 gap-2 font-black uppercase text-xs h-12 px-6"
+              className="bg-amber-500 hover:bg-amber-600 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
               onClick={handleApproveBudget}
             >
               <ThumbsUp className="h-4 w-4" />
-              APROVAR ORÇAMENTO
+              APROVAR E INICIAR RECUPERAÇÃO
+            </Button>
+          )}
+          {status === 'InRecovery' && (
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-black uppercase text-xs h-12 px-6 shadow-lg transition-all"
+              onClick={handleFinalizeReport}
+            >
+              <Wrench className="h-4 w-4" />
+              FINALIZAR E CERTIFICAR
             </Button>
           )}
           <Button 
-            className="bg-primary hover:bg-primary/90 text-white gap-2 font-black uppercase text-xs h-12 px-8 shadow-lg transition-all hover:scale-105"
+            variant="outline"
+            className="border-primary/20 text-primary gap-2 font-black uppercase text-xs h-12 px-8"
             onClick={() => toast({ title: "Laudo Sincronizado", description: "O registro foi salvo com sucesso no banco de dados." })}
           >
             <Save className="h-4 w-4" />
-            {isApproved ? "ARQUIVAR NO BANCO" : "SALVAR RASCUNHO"}
+            SALVAR RASCUNHO
           </Button>
         </div>
       </div>

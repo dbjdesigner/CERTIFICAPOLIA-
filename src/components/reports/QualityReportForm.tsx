@@ -27,7 +27,8 @@ import {
   UserCheck,
   Award,
   DollarSign,
-  ThumbsUp
+  ThumbsUp,
+  Hash
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -55,7 +56,7 @@ export function QualityReportForm() {
     equipmentType: "Unidade CVT Industrial",
     model: "MODELO_CVT_2026",
     manufacturer: "BRAZILIAN_SYSTEMS",
-    serialNumber: "SN-9988-CVT",
+    serialNumber: "CF*",
     clientName: "",
     sellerName: "",
     clientInfo: "",
@@ -369,12 +370,18 @@ export function QualityReportForm() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Número de Série</Label>
-                  <Input 
-                    placeholder="SN-0000" 
-                    className="h-12 border-primary/10 font-black uppercase bg-muted/5"
-                    value={formData.serialNumber}
-                    onChange={(e) => handleInputChange('serialNumber', e.target.value)}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-primary text-sm tracking-tighter">CF*</span>
+                    <Input 
+                      placeholder="0000" 
+                      className="h-12 border-primary/10 font-black uppercase bg-muted/5 pl-12"
+                      value={formData.serialNumber.replace("CF*", "")}
+                      onChange={(e) => {
+                        const numericValue = e.target.value.replace(/[^\d]/g, "");
+                        handleInputChange('serialNumber', "CF*" + numericValue);
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 

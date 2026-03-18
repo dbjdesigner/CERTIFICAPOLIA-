@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
   SelectContent, 
@@ -28,7 +29,9 @@ import {
   CheckCircle,
   FileText,
   Award,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck,
+  Zap
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +41,6 @@ import { doc, collection } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const SELLERS = ["DOUGLAS", "LEANDRO", "LUIZ", "MERCADOLIVRE", "PAMELA", "RODRIGO", "RONALDO", "THIAGO", "VINICIUS"];
-const CVT_MODELS = ["JF011", "JF011E", "JF011E 2X MOLAS", "JF015", "JF015E", "JF016"];
 
 export function QualityReportForm() {
   const params = useParams();
@@ -50,7 +52,6 @@ export function QualityReportForm() {
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [status, setStatus] = useState<'Budget' | 'InRecovery' | 'Published'>('Budget');
-  const [showCustomModel, setShowCustomModel] = useState(false);
   
   const [formData, setFormData] = useState({
     equipmentType: "JF011",
@@ -64,6 +65,8 @@ export function QualityReportForm() {
     operationType: "recovery" as 'recovery' | 'sale',
     value: "",
     partialDescription: "",
+    servicesPerformed: "",
+    qualityNotes: "UNIDADE APROVADA EM TESTE DE BANCADA COM PRESSÃO NOMINAL.",
     priVacRef: "24",
     priVacAntes: "",
     priVacDepois: "",
@@ -148,7 +151,7 @@ export function QualityReportForm() {
     
     if (!reportId) {
       router.push(`/reports/${finalId}`);
-      toast({ title: "Orçamento Criado", description: "O registro foi salvo no banco de dados." });
+      toast({ title: "Orçamento Criado", description: "O registro foi salvo na aba de orçamentos." });
     }
   };
 
@@ -200,7 +203,7 @@ export function QualityReportForm() {
             {status === 'Published' ? <CheckCircle className="h-6 w-6 text-emerald-600" /> : status === 'InRecovery' ? <Wrench className="h-6 w-6 text-blue-600" /> : <FileText className="h-6 w-6 text-amber-600" />}
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Fluxo do Terminal</h2>
+            <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Fluxo de Aprovação</h2>
             <Badge className={
               status === 'Published' ? "bg-emerald-500 text-white font-black text-[10px] uppercase" : 
               status === 'InRecovery' ? "bg-blue-500 text-white font-black text-[10px] uppercase" :
@@ -217,13 +220,13 @@ export function QualityReportForm() {
             </Button>
           )}
           {status === 'Budget' && reportId && (
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs h-12 px-8 shadow-lg" onClick={() => { setStatus('InRecovery'); saveReport('InRecovery'); toast({ title: "Orçamento Aprovado" }); }}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs h-12 px-8 shadow-lg" onClick={() => { setStatus('InRecovery'); saveReport('InRecovery'); toast({ title: "Aprovado pelo Cliente" }); }}>
               <ThumbsUp className="h-4 w-4 mr-2" /> APROVAR E INICIAR RECUPERAÇÃO
             </Button>
           )}
           {status === 'InRecovery' && (
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs h-12 px-8 shadow-lg" onClick={() => { setStatus('Published'); saveReport('Published'); toast({ title: "Laudo Finalizado" }); }}>
-              <CheckCircle2 className="h-4 w-4 mr-2" /> FINALIZAR E CERTIFICAR
+              <CheckCircle2 className="h-4 w-4 mr-2" /> FINALIZAR E LIBERAR LAUDO
             </Button>
           )}
           <Button variant="outline" className="border-primary/20 text-primary font-black uppercase text-xs h-12 px-6" onClick={() => { saveReport(); toast({ title: "Alterações Salvas" }); }}>
@@ -235,95 +238,192 @@ export function QualityReportForm() {
       <Card className="border-none shadow-xl overflow-hidden bg-white print:shadow-none print:border-none">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start h-auto p-0 bg-muted/30 rounded-none border-b overflow-x-auto print:hidden">
-            {["identificacao", "testes", "servicos", "qualidade", "garantia"].map((tab, idx) => (
-              <TabsTrigger key={tab} value={tab} className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
-                {idx + 1}. {tab === "identificacao" ? "Identificação" : tab === "testes" ? "Módulo Hidráulico" : tab === "servicos" ? "Serviços" : tab === "qualidade" ? "Qualidade" : "Garantia"}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="identificacao" className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
+              1. Identificação
+            </TabsTrigger>
+            <TabsTrigger value="testes" className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
+              2. Testes
+            </TabsTrigger>
+            <TabsTrigger value="servicos" className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
+              3. Serviços
+            </TabsTrigger>
+            <TabsTrigger value="qualidade" className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
+              4. Qualidade
+            </TabsTrigger>
+            <TabsTrigger value="garantia" className="px-8 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary rounded-none font-black uppercase text-[10px] tracking-widest">
+              5. Garantia
+            </TabsTrigger>
           </TabsList>
 
           <CardContent className="p-8 space-y-12 print:p-0 print:space-y-8">
-            <div className="hidden print:block border-b-4 border-primary pb-8">
+            <div className="hidden print:block border-b-4 border-primary pb-8 mb-8">
               <div className="flex justify-between items-end">
                 <div>
-                  <h1 className="text-4xl font-black text-primary tracking-tighter uppercase">Certificado de Qualidade CVT</h1>
-                  <p className="text-xs font-bold text-accent tracking-[0.3em] uppercase mt-2">Relatório Técnico Nº {formData.serialNumber}</p>
+                  <h1 className="text-4xl font-black text-primary tracking-tighter uppercase leading-none">Certificado de Qualidade CVT</h1>
+                  <p className="text-[10px] font-bold text-accent tracking-[0.4em] uppercase mt-4">Relatório Técnico Industrial Nº {formData.serialNumber.replace("CF*", "")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-primary uppercase">CERTIFICA LAUDO CVT</p>
-                  <p className="text-[8px] font-bold text-muted-foreground uppercase">Terminal de Alta Precisão Industrial</p>
+                  <p className="text-xs font-black text-primary uppercase">CERTIFICA LAUDO CVT</p>
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase">Terminal de Alta Precisão</p>
                 </div>
               </div>
             </div>
 
-            <section className="space-y-8">
-              <div className="flex justify-between items-center border-b pb-4">
-                <h3 className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-accent" /> Identificação da Unidade
-                </h3>
-                <div className="print:hidden">
-                  <Button onClick={handleAiAssist} disabled={isAiLoading} variant="outline" className="gap-2 border-accent/20 text-accent font-black h-10 px-6">
-                    {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} IA ASSIST
-                  </Button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Cliente Industrial</Label>
-                  <Input className="h-12 font-black uppercase print:border-none print:h-auto print:p-0" value={formData.clientName} onChange={(e) => handleInputChange('clientName', e.target.value.toUpperCase())} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Vendedor Responsável</Label>
-                  <Select value={formData.sellerName} onValueChange={(v) => handleInputChange('sellerName', v)}>
-                    <SelectTrigger className="h-12 font-black print:hidden"><SelectValue /></SelectTrigger>
-                    <SelectContent>{SELLERS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <div className="hidden print:block font-black uppercase">{formData.sellerName}</div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-accent">Valor Total (R$)</Label>
-                  <div className="relative print:hidden">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-accent" />
-                    <Input className="h-12 pl-10 font-black text-lg" value={formData.value} onChange={(e) => handleNumericInput('value', e.target.value)} />
+            <TabsContent value="identificacao" className="mt-0 space-y-12">
+              <section className="space-y-8">
+                <div className="flex justify-between items-center border-b pb-4">
+                  <h3 className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-accent" /> Identificação Industrial
+                  </h3>
+                  <div className="print:hidden">
+                    <Button onClick={handleAiAssist} disabled={isAiLoading} variant="outline" className="gap-2 border-accent/20 text-accent font-black h-10 px-6">
+                      {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} IA ASSIST
+                    </Button>
                   </div>
-                  <div className="hidden print:block font-black text-xl text-accent">R$ {formData.value}</div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Modelo Conjunto</Label>
-                  <div className="font-black uppercase text-primary print:text-lg">{formData.equipmentType === "CRIAR" ? formData.customEquipmentType : formData.equipmentType}</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Cliente / Parceiro</Label>
+                    <Input className="h-12 font-black uppercase" value={formData.clientName} onChange={(e) => handleInputChange('clientName', e.target.value.toUpperCase())} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Vendedor</Label>
+                    <Select value={formData.sellerName} onValueChange={(v) => handleInputChange('sellerName', v)}>
+                      <SelectTrigger className="h-12 font-black"><SelectValue placeholder="Selecione o vendedor" /></SelectTrigger>
+                      <SelectContent>{SELLERS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-accent">Valor Total (R$)</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-accent" />
+                      <Input className="h-12 pl-10 font-black text-lg" value={formData.value} onChange={(e) => handleNumericInput('value', e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Modelo Conjunto</Label>
+                    <Input className="h-12 font-black uppercase" value={formData.equipmentType} onChange={(e) => handleInputChange('equipmentType', e.target.value.toUpperCase())} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Número de Série</Label>
+                    <Input className="h-12 font-black uppercase" value={formData.serialNumber} onChange={(e) => handleInputChange('serialNumber', e.target.value.toUpperCase())} />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Número de Série</Label>
-                  <div className="font-black text-primary uppercase print:text-lg">{formData.serialNumber}</div>
-                </div>
-              </div>
-            </section>
+              </section>
+            </TabsContent>
 
-            <section className="space-y-12">
-              <TestSection title="Polia Primária" prefix="pri" />
-              <TestSection title="Polia Secundária" prefix="sec" />
-            </section>
+            <TabsContent value="testes" className="mt-0 space-y-12">
+              <section className="space-y-12">
+                <TestSection title="Polia Primária (Hydraulic Unit)" prefix="pri" />
+                <TestSection title="Polia Secundária (Hydraulic Unit)" prefix="sec" />
+              </section>
+            </TabsContent>
 
-            <section className="print:block space-y-8">
-              <div className="flex items-center gap-2 border-b pb-4">
-                <Award className="h-6 w-6 text-accent" />
-                <h3 className="text-xl font-black text-primary uppercase tracking-tight">Garantia e Qualidade</h3>
-              </div>
-              <Card className="bg-[#0B1A2B] text-white p-12 rounded-[2rem] text-center border-none print:bg-muted print:text-primary">
-                <h4 className="text-2xl font-black uppercase text-accent mb-4">Certificação Técnica Validada</h4>
-                <p className="text-white/80 font-bold max-w-2xl mx-auto print:text-primary">Unidade CVT testada e validada sob pressão nominal. Garantia de 03 meses exclusiva para o serviço executado conforme registro.</p>
-                <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-around gap-8">
-                  <div className="text-center">
-                    <div className="h-px w-48 bg-white/20 mx-auto mb-2" />
-                    <p className="text-[10px] font-black uppercase">Responsável Técnico</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="h-px w-48 bg-white/20 mx-auto mb-2" />
-                    <p className="text-[10px] font-black uppercase">Data da Certificação</p>
-                  </div>
+            <TabsContent value="servicos" className="mt-0 space-y-8">
+              <section className="space-y-6">
+                <div className="flex items-center gap-2 border-b pb-4">
+                  <Wrench className="h-6 w-6 text-accent" />
+                  <h3 className="text-xl font-black text-primary uppercase tracking-tight">Serviços Executados</h3>
                 </div>
-              </Card>
-            </section>
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Descrição Técnica dos Serviços de Recuperação</Label>
+                  <Textarea 
+                    className="min-h-[250px] font-bold text-primary p-6 bg-muted/20 border-primary/10" 
+                    placeholder="Liste os serviços, trocas de peças e ajustes realizados..."
+                    value={formData.servicesPerformed}
+                    onChange={(e) => handleInputChange('servicesPerformed', e.target.value)}
+                  />
+                </div>
+              </section>
+            </TabsContent>
+
+            <TabsContent value="qualidade" className="mt-0 space-y-8">
+              <section className="space-y-6">
+                <div className="flex items-center gap-2 border-b pb-4">
+                  <ClipboardCheck className="h-6 w-6 text-accent" />
+                  <h3 className="text-xl font-black text-primary uppercase tracking-tight">Parecer de Qualidade</h3>
+                </div>
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Observações de Validação Técnica</Label>
+                  <Textarea 
+                    className="min-h-[250px] font-bold text-primary p-6 bg-muted/20 border-primary/10" 
+                    value={formData.qualityNotes}
+                    onChange={(e) => handleInputChange('qualityNotes', e.target.value)}
+                  />
+                </div>
+              </section>
+            </TabsContent>
+
+            <TabsContent value="garantia" className="mt-0">
+              <section className="space-y-8">
+                <Card className="bg-[#0B1A2B] text-white p-12 rounded-[2.5rem] text-center border-none shadow-2xl">
+                  <Award className="h-16 w-16 text-accent mx-auto mb-6" />
+                  <h4 className="text-3xl font-black uppercase text-accent mb-4 tracking-tighter">GARANTIA TÉCNICA CERTIFICA</h4>
+                  <p className="text-white/80 font-bold max-w-xl mx-auto mb-8 text-lg">Unidade CVT testada e validada sob pressão nominal. Garantia de 03 meses exclusiva para o serviço executado conforme registro.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/10">
+                    <div className="text-center">
+                      <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-accent">Responsável Técnico</p>
+                      <p className="font-black text-sm uppercase mt-1">{user?.displayName || user?.email?.split('@')[0] || "Técnico Certificador"}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-accent">Data de Emissão</p>
+                      <p className="font-black text-sm mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                  </div>
+                </Card>
+              </section>
+            </TabsContent>
+
+            <div className="hidden print:block space-y-12 border-t-2 pt-12">
+               <div className="grid grid-cols-2 gap-12">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Cliente Industrial</p>
+                    <p className="font-black text-primary uppercase border-b pb-1">{formData.clientName}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Vendedor Responsável</p>
+                    <p className="font-black text-primary uppercase border-b pb-1">{formData.sellerName}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Equipamento / Modelo</p>
+                    <p className="font-black text-primary uppercase border-b pb-1">{formData.equipmentType} - {formData.model}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Certificação Digital</p>
+                    <p className="font-black text-accent uppercase border-b pb-1">QC-CVT-VALIDATED</p>
+                  </div>
+               </div>
+
+               <div className="space-y-4">
+                  <h4 className="font-black text-primary uppercase text-sm border-l-4 border-accent pl-2">Laudo de Testes Hidráulicos</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border p-4 rounded-lg bg-muted/10">
+                      <p className="text-[9px] font-black uppercase mb-2">Primária (Vac/Pres)</p>
+                      <p className="text-xs font-bold">In: {formData.priVacAntes}/{formData.priPresAntes} | Out: {formData.priVacDepois}/{formData.priPresDepois}</p>
+                    </div>
+                    <div className="border p-4 rounded-lg bg-muted/10">
+                      <p className="text-[9px] font-black uppercase mb-2">Secundária (Vac/Pres)</p>
+                      <p className="text-xs font-bold">In: {formData.secVacAntes}/{formData.secPresAntes} | Out: {formData.secVacDepois}/{formData.secPresDepois}</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="space-y-4">
+                  <h4 className="font-black text-primary uppercase text-sm border-l-4 border-accent pl-2">Serviços e Qualidade</h4>
+                  <div className="p-6 border rounded-xl bg-muted/5 min-h-[100px]">
+                    <p className="text-[10px] font-bold text-primary whitespace-pre-wrap">{formData.servicesPerformed || "Nenhum serviço extra listado."}</p>
+                    <p className="text-[10px] font-black text-accent mt-4 border-t pt-2">{formData.qualityNotes}</p>
+                  </div>
+               </div>
+
+               <div className="mt-12 text-center pt-8">
+                  <Zap className="h-8 w-8 text-accent mx-auto mb-2 opacity-30" />
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA PELO TERMINAL CERTIFICA LAUDO CVT</p>
+               </div>
+            </div>
           </CardContent>
         </Tabs>
       </Card>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -13,7 +14,8 @@ import {
   FileDown, 
   ExternalLink,
   Trash2,
-  Activity
+  Activity,
+  Lock
 } from "lucide-react";
 import Link from "next/link";
 import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -71,16 +73,28 @@ export default function ReportsListPage() {
       return;
     }
 
-    const headers = ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Data"];
-    const rows = filteredReports.map(r => [
-      r.reportNumber || 'N/A',
-      r.equipmentType || 'N/A',
-      r.model || 'N/A',
-      r.clientName || 'N/A',
-      r.serialNumber || 'N/A',
-      r.status || 'N/A',
-      r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : 'N/A'
-    ]);
+    const headers = isMaster 
+      ? ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Valor", "Data"]
+      : ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Data"];
+    
+    const rows = filteredReports.map(r => {
+      const basic = [
+        r.reportNumber || 'N/A',
+        r.equipmentType || 'N/A',
+        r.model || 'N/A',
+        r.clientName || 'N/A',
+        r.serialNumber || 'N/A',
+        r.status || 'N/A',
+        r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : 'N/A'
+      ];
+      
+      if (isMaster) {
+        // Insert value at the correct position if master
+        basic.splice(6, 0, r.value || "0,00");
+      }
+      
+      return basic;
+    });
 
     const csvContent = [headers, ...rows].map(e => e.join(";")).join("\n");
     const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -137,6 +151,12 @@ export default function ReportsListPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full md:w-auto">
+                {!isMaster && (
+                  <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                    <Lock className="h-3 w-3 text-amber-600" />
+                    <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Modo Operacional - Sem Valores</span>
+                  </div>
+                )}
                 <div className="h-4 w-px bg-border mx-2" />
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   {filteredReports.length} REGISTROS LOCALIZADOS

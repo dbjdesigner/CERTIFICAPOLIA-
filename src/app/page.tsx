@@ -12,7 +12,8 @@ import {
   FileText,
   Trash2,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Lock
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,7 @@ export default function Dashboard() {
   const publishedReports = reports.filter(r => r.status === 'Published');
 
   const calculateTotalValue = (items: any[]) => {
+    if (!isMaster) return "RESTRITO";
     return items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
@@ -83,7 +85,7 @@ export default function Dashboard() {
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Registro</th>
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Unidade CVT</th>
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Cliente Industrial</th>
-            <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Valor</th>
+            {isMaster && <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Valor</th>}
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em] text-right">Ação</th>
           </tr>
         </thead>
@@ -98,7 +100,11 @@ export default function Dashboard() {
                 </div>
               </td>
               <td className="px-8 py-5 text-muted-foreground font-black uppercase text-xs">{report.clientName || report.client}</td>
-              <td className="px-8 py-5 text-accent font-black text-xs">R$ {report.value || "0,00"}</td>
+              {isMaster && (
+                <td className="px-8 py-5 text-accent font-black text-xs">
+                  R$ {report.value || "0,00"}
+                </td>
+              )}
               <td className="px-8 py-5 text-right">
                 <Button 
                   variant="ghost" 
@@ -113,7 +119,7 @@ export default function Dashboard() {
           ))}
           {reports.length === 0 && !isLoading && (
             <tr>
-              <td colSpan={5} className="px-8 py-20 text-center text-muted-foreground font-bold uppercase text-xs tracking-widest">
+              <td colSpan={isMaster ? 5 : 4} className="px-8 py-20 text-center text-muted-foreground font-bold uppercase text-xs tracking-widest">
                 Nenhum registro localizado.
               </td>
             </tr>
@@ -152,7 +158,14 @@ export default function Dashboard() {
                 <DollarSign className="h-4 w-4 text-amber-500" />
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-black text-primary">{calculateTotalValue(budgetReports)}</span>
+                {isMaster ? (
+                  <span className="text-2xl font-black text-primary">{calculateTotalValue(budgetReports)}</span>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground/40">
+                    <Lock className="h-4 w-4" />
+                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
+                  </div>
+                )}
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{budgetReports.length} pendentes</p>
               </div>
             </CardContent>
@@ -164,7 +177,14 @@ export default function Dashboard() {
                 <Wrench className="h-4 w-4 text-blue-500" />
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-black text-primary">{calculateTotalValue(inRecoveryReports)}</span>
+                {isMaster ? (
+                  <span className="text-2xl font-black text-primary">{calculateTotalValue(inRecoveryReports)}</span>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground/40">
+                    <Lock className="h-4 w-4" />
+                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
+                  </div>
+                )}
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{inRecoveryReports.length} em execução</p>
               </div>
             </CardContent>
@@ -176,7 +196,14 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-black text-primary">{calculateTotalValue(publishedReports)}</span>
+                {isMaster ? (
+                  <span className="text-2xl font-black text-primary">{calculateTotalValue(publishedReports)}</span>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground/40">
+                    <Lock className="h-4 w-4" />
+                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
+                  </div>
+                )}
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{publishedReports.length} concluídos</p>
               </div>
             </CardContent>

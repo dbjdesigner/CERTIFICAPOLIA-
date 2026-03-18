@@ -65,6 +65,92 @@ const QUALITY_CHECKS = [
   "APROVADO EM TESTE DE BANCADA"
 ];
 
+// Sub-componente extraído para evitar perda de foco ao digitar
+interface TestSectionProps {
+  title: string;
+  prefix: 'pri' | 'sec';
+  formData: any;
+  handleNumericInput: (field: string, value: string) => void;
+}
+
+const TestSection = ({ title, prefix, formData, handleNumericInput }: TestSectionProps) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-2 border-l-4 border-accent pl-4">
+      <h3 className="text-lg font-black text-primary uppercase tracking-tight">{title}</h3>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card className="border shadow-sm overflow-hidden bg-white">
+        <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
+          <span className="text-[10px] font-black uppercase text-primary">Vácuo (INHG)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
+            <Input 
+              className="h-6 w-12 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
+              value={formData[`${prefix}VacRef`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}VacRef`, e.target.value)}
+              maxLength={2}
+            />
+          </div>
+        </div>
+        <CardContent className="p-4 grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
+            <Input 
+              className="h-10 font-black bg-orange-50/50" 
+              value={formData[`${prefix}VacAntes`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)} 
+              maxLength={2}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
+            <Input 
+              className="h-10 font-black bg-emerald-50/50" 
+              value={formData[`${prefix}VacDepois`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)} 
+              maxLength={2}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="border shadow-sm overflow-hidden bg-white">
+        <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
+          <span className="text-[10px] font-black uppercase text-primary">Pressão (KPA)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
+            <Input 
+              className="h-6 w-14 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
+              value={formData[`${prefix}PresRef`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}PresRef`, e.target.value)}
+              maxLength={4}
+            />
+          </div>
+        </div>
+        <CardContent className="p-4 grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
+            <Input 
+              className="h-10 font-black bg-orange-50/50" 
+              value={formData[`${prefix}PresAntes`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}PresAntes`, e.target.value)} 
+              maxLength={4}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
+            <Input 
+              className="h-10 font-black bg-emerald-50/50" 
+              value={formData[`${prefix}PresDepois`] || ""} 
+              onChange={(e) => handleNumericInput(`${prefix}PresDepois`, e.target.value)} 
+              maxLength={4}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
 export function QualityReportForm() {
   const params = useParams();
   const router = useRouter();
@@ -193,7 +279,7 @@ export function QualityReportForm() {
       id: finalId,
       status: finalStatus,
       technicianId: user.uid,
-      technicianName: currentUserDoc?.name || "DIEGO ROSA",
+      technicianName: "DIEGO ROSA",
       reportNumber: formData.serialNumber !== "CF*" ? `QC-${formData.serialNumber.replace("CF*", "")}` : `QC-${Math.floor(Math.random() * 10000)}`,
       updatedAt: new Date().toISOString(),
       createdAt: formData.createdAt || new Date().toISOString()
@@ -206,84 +292,6 @@ export function QualityReportForm() {
       toast({ title: "Orçamento Criado", description: "O registro foi salvo na aba de orçamentos." });
     }
   };
-
-  const TestSection = ({ title, prefix }: { title: string, prefix: 'pri' | 'sec' }) => (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 border-l-4 border-accent pl-4">
-        <h3 className="text-lg font-black text-primary uppercase tracking-tight">{title}</h3>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border shadow-sm overflow-hidden bg-white">
-          <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase text-primary">Vácuo (INHG)</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
-              <Input 
-                className="h-6 w-12 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
-                value={formData[`${prefix}VacRef` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}VacRef`, e.target.value)}
-                maxLength={2}
-              />
-            </div>
-          </div>
-          <CardContent className="p-4 grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
-              <Input 
-                className="h-10 font-black bg-orange-50/50" 
-                value={formData[`${prefix}VacAntes` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)} 
-                maxLength={2}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
-              <Input 
-                className="h-10 font-black bg-emerald-50/50" 
-                value={formData[`${prefix}VacDepois` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)} 
-                maxLength={2}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border shadow-sm overflow-hidden bg-white">
-          <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase text-primary">Pressão (KPA)</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
-              <Input 
-                className="h-6 w-14 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
-                value={formData[`${prefix}PresRef` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}PresRef`, e.target.value)}
-                maxLength={4}
-              />
-            </div>
-          </div>
-          <CardContent className="p-4 grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
-              <Input 
-                className="h-10 font-black bg-orange-50/50" 
-                value={formData[`${prefix}PresAntes` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}PresAntes`, e.target.value)} 
-                maxLength={4}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
-              <Input 
-                className="h-10 font-black bg-emerald-50/50" 
-                value={formData[`${prefix}PresDepois` as keyof typeof formData] || ""} 
-                onChange={(e) => handleNumericInput(`${prefix}PresDepois`, e.target.value)} 
-                maxLength={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -414,8 +422,18 @@ export function QualityReportForm() {
 
             <TabsContent value="testes" className="mt-0 space-y-12">
               <section className="space-y-12">
-                <TestSection title="Polia Primária (Hydraulic Unit)" prefix="pri" />
-                <TestSection title="Polia Secundária (Hydraulic Unit)" prefix="sec" />
+                <TestSection 
+                  title="Polia Primária (Hydraulic Unit)" 
+                  prefix="pri" 
+                  formData={formData} 
+                  handleNumericInput={handleNumericInput} 
+                />
+                <TestSection 
+                  title="Polia Secundária (Hydraulic Unit)" 
+                  prefix="sec" 
+                  formData={formData} 
+                  handleNumericInput={handleNumericInput} 
+                />
               </section>
             </TabsContent>
 
@@ -494,7 +512,7 @@ export function QualityReportForm() {
                       <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-accent">Responsável Técnico</p>
                       <p className="font-black text-sm uppercase mt-1">
-                        {currentUserDoc?.name || "DIEGO ROSA"}
+                        DIEGO ROSA
                       </p>
                     </div>
                     <div className="text-center">
@@ -561,7 +579,7 @@ export function QualityReportForm() {
 
                <div className="mt-12 text-center pt-8">
                   <Zap className="h-8 w-8 text-accent mx-auto mb-2 opacity-30" />
-                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA POR {currentUserDoc?.name || "DIEGO ROSA"} - TERMINAL CERTIFICA LAUDO CVT</p>
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA POR DIEGO ROSA - TERMINAL CERTIFICA LAUDO CVT</p>
                </div>
             </div>
           </CardContent>

@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
   SelectContent, 
@@ -16,29 +15,18 @@ import {
 } from "@/components/ui/select";
 import { 
   ClipboardCheck, 
-  Hammer, 
-  ShieldCheck, 
-  Image as ImageIcon, 
-  FileCheck, 
-  Info,
+  ImageIcon, 
   Sparkles,
   Save,
   Loader2,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  Archive,
   PlusCircle,
-  AlertTriangle,
   Fingerprint,
   Activity,
-  FileText,
-  BarChart3,
-  Wrench
+  ShieldCheck,
+  History
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 
 const SELLERS = [
   "DOUGLAS",
@@ -80,8 +68,13 @@ export function QualityReportForm() {
     clientInfo: "",
     operationType: "maintenance" as any,
     partialDescription: "",
-    specifications: [] as string[],
-    testProcedures: [] as string[]
+    // Test data
+    testVacInBefore: "0",
+    testVacInAfter: "0",
+    testPresInBefore: "0",
+    testPresInAfter: "0",
+    testRefVac: "-24",
+    testRefPres: "510"
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -112,8 +105,7 @@ export function QualityReportForm() {
         setFormData(prev => ({
           ...prev,
           model: result.suggestedEquipmentDetails?.model || prev.model,
-          manufacturer: result.suggestedEquipmentDetails?.manufacturer || prev.manufacturer,
-          specifications: result.suggestedEquipmentDetails?.specifications || prev.specifications
+          manufacturer: result.suggestedEquipmentDetails?.manufacturer || prev.manufacturer
         }));
       }
 
@@ -135,7 +127,7 @@ export function QualityReportForm() {
   return (
     <div className="space-y-8">
       <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-        INSIRA OS DADOS TÉCNICOS PARA EMITIR O LAUDO INDUSTRIAL
+        TERMINAL TÉCNICO DE CERTIFICAÇÃO INDUSTRIAL V4.5
       </p>
 
       {/* Dark Header Action Bar */}
@@ -156,7 +148,7 @@ export function QualityReportForm() {
 
         <Button 
           className="bg-accent hover:bg-accent/90 text-[#0B1A2B] font-black h-12 px-8 rounded-xl gap-2 transition-all hover:scale-105 active:scale-95 uppercase tracking-tight shadow-lg"
-          onClick={() => toast({ title: "Registro Salvo", description: "O laudo foi sincronizado com sucesso." })}
+          onClick={() => toast({ title: "Registro Salvo", description: "O laudo foi sincronizado com DIEGO (Resp. Técnico)." })}
         >
           <Save className="h-5 w-5" />
           SALVAR REGISTRO
@@ -165,12 +157,12 @@ export function QualityReportForm() {
 
       <Card className="border-none shadow-2xl overflow-hidden bg-white rounded-2xl">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full flex h-auto p-1 bg-[#F8FAFC] rounded-none border-b">
+          <TabsList className="w-full flex h-auto p-1 bg-[#F8FAFC] rounded-none border-b overflow-x-auto">
             {["identificacao", "testes", "servicos", "qualidade", "midia", "garantia"].map((tab) => (
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="flex-1 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-accent rounded-none transition-all"
+                className="flex-1 py-5 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-accent rounded-none transition-all min-w-[120px]"
               >
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">{tab === "servicos" ? "SERVIÇOS" : tab}</span>
               </TabsTrigger>
@@ -178,11 +170,12 @@ export function QualityReportForm() {
           </TabsList>
 
           <CardContent className="p-10">
+            {/* IDENTIFICAÇÃO */}
             <TabsContent value="identificacao" className="mt-0 space-y-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-2xl font-black text-primary uppercase tracking-tight">IDENTIFICAÇÃO DA UNIDADE</h2>
-                  <p className="text-sm text-muted-foreground font-medium">Dados técnicos e comerciais para certificação industrial.</p>
+                  <p className="text-sm text-muted-foreground font-medium">Responsável Técnico: <span className="text-accent font-black">DIEGO</span></p>
                 </div>
                 <Button 
                   onClick={handleAiAssist} 
@@ -232,35 +225,112 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
+            {/* TESTES */}
             <TabsContent value="testes" className="mt-0 space-y-12">
               <div className="flex items-center gap-4 text-primary bg-muted/10 p-4 rounded-xl">
                 <Activity className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">2. TESTES DE PERFORMANCE</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">2. PERFORMANCE HIDRÁULICA (COMPARATIVO)</h2>
               </div>
               
               <div className="space-y-16">
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="flex items-center gap-3">
                     <div className="h-4 w-4 rounded-full bg-accent" />
-                    <h3 className="font-black text-lg uppercase tracking-tight text-primary">CONJUNTO POLIA PRIMÁRIA</h3>
+                    <h3 className="font-black text-lg uppercase tracking-tight text-primary">MONITORAMENTO DE POLIAS</h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 border-2 border-dashed rounded-3xl bg-muted/5">
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">VÁCUO DE SUCÇÃO (INHG)</Label>
-                      <div className="flex items-center gap-4">
-                        <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
-                        <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm" defaultValue="MIN: -24 inHg" />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    {/* VÁCUO SECTION */}
+                    <div className="space-y-6 p-8 border-2 border-dashed rounded-[2.5rem] bg-muted/5 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-accent text-white px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-widest shadow-lg">
+                        VÁCUO (INHG)
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-6 mt-4">
+                        <div className="space-y-3">
+                          <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">COMO CHEGOU</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              className="h-20 text-center text-3xl font-black border-muted-foreground/20 text-primary bg-white rounded-2xl" 
+                              value={formData.testVacInBefore}
+                              onChange={(e) => handleInputChange('testVacInBefore', e.target.value)}
+                            />
+                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-muted-foreground">INHG</span>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <Label className="text-[9px] font-black text-accent uppercase tracking-widest">PÓS RECUPERAÇÃO</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              className="h-20 text-center text-3xl font-black bg-[#E6F7F9] border-accent/30 text-accent rounded-2xl" 
+                              value={formData.testVacInAfter}
+                              onChange={(e) => handleInputChange('testVacInAfter', e.target.value)}
+                            />
+                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-accent">INHG</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-muted/50">
+                        <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">REFERÊNCIA TÉCNICA (EDITÁVEL)</Label>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-black text-primary uppercase">MIN:</span>
+                          <Input 
+                            className="h-10 w-24 text-center font-black border-accent/20 text-accent rounded-lg" 
+                            value={formData.testRefVac}
+                            onChange={(e) => handleInputChange('testRefVac', e.target.value)}
+                          />
+                          <span className="text-xs font-black text-muted-foreground">INHG</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">PRESSÃO DE TRABALHO (KPA)</Label>
-                      <div className="flex items-center gap-4">
-                        <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
-                        <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <Input className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm" defaultValue="510 ±20 kPa" />
+                    {/* PRESSÃO SECTION */}
+                    <div className="space-y-6 p-8 border-2 border-dashed rounded-[2.5rem] bg-muted/5 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-primary text-white px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-widest shadow-lg">
+                        PRESSÃO (KPA)
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-6 mt-4">
+                        <div className="space-y-3">
+                          <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">COMO CHEGOU</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              className="h-20 text-center text-3xl font-black border-muted-foreground/20 text-primary bg-white rounded-2xl" 
+                              value={formData.testPresInBefore}
+                              onChange={(e) => handleInputChange('testPresInBefore', e.target.value)}
+                            />
+                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-muted-foreground">KPA</span>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <Label className="text-[9px] font-black text-accent uppercase tracking-widest">PÓS RECUPERAÇÃO</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              className="h-20 text-center text-3xl font-black bg-[#E6F7F9] border-accent/30 text-accent rounded-2xl" 
+                              value={formData.testPresInAfter}
+                              onChange={(e) => handleInputChange('testPresInAfter', e.target.value)}
+                            />
+                            <span className="absolute bottom-2 right-4 text-[10px] font-black text-accent">KPA</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-muted/50">
+                        <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">REFERÊNCIA TÉCNICA (EDITÁVEL)</Label>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-black text-primary uppercase">NOMINAL:</span>
+                          <Input 
+                            className="h-10 w-24 text-center font-black border-accent/20 text-accent rounded-lg" 
+                            value={formData.testRefPres}
+                            onChange={(e) => handleInputChange('testRefPres', e.target.value)}
+                          />
+                          <span className="text-xs font-black text-muted-foreground">KPA</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -268,10 +338,11 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
+            {/* SERVIÇOS */}
             <TabsContent value="servicos" className="mt-0 space-y-8">
               <div className="flex items-center gap-4 text-primary">
                 <ShieldCheck className="h-8 w-8 text-accent" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter">3. SERVIÇOS REALIZADOS</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">3. SERVIÇOS REALIZADOS POR <span className="text-accent">DIEGO</span></h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -288,6 +359,7 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
+            {/* QUALIDADE */}
             <TabsContent value="qualidade" className="mt-0 space-y-6">
               <h2 className="text-2xl font-black text-primary uppercase tracking-tight">Checklist de Qualidade Certificada</h2>
               <div className="grid gap-4">
@@ -307,6 +379,7 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
+            {/* MÍDIA */}
             <TabsContent value="midia" className="mt-0 space-y-6">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-black text-primary uppercase tracking-tight">EVIDÊNCIAS DIGITAIS</h2>
@@ -332,6 +405,7 @@ export function QualityReportForm() {
               </div>
             </TabsContent>
 
+            {/* GARANTIA */}
             <TabsContent value="garantia" className="mt-0 space-y-10">
               <h2 className="text-2xl font-black text-primary uppercase tracking-tight">CERTIFICADO DE GARANTIA</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -354,9 +428,16 @@ export function QualityReportForm() {
       </Card>
       
       <footer className="py-12 text-center">
-        <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.3em]">
-          © 2026 BRAZILIAN SOLUÇÕES INDUSTRIAIS - SISTEMA DE QUALIDADE V4.5
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.3em]">
+            © 2026 BRAZILIAN SOLUÇÕES INDUSTRIAIS - SISTEMA DE QUALIDADE CERTIFICAPOLIA
+          </p>
+          <div className="flex items-center gap-4 text-[9px] font-black text-accent uppercase tracking-widest opacity-60">
+            <span>UNIDADE: POLIA-MESTRE-01</span>
+            <span className="h-1 w-1 bg-accent rounded-full" />
+            <span>RESP. TÉCNICO: DIEGO</span>
+          </div>
+        </div>
       </footer>
     </div>
   );

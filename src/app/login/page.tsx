@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, Lock, User, Activity, ShieldAlert } from "lucide-react";
+import { ShieldCheck, Lock, User, Activity } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
@@ -49,18 +50,15 @@ export default function LoginPage() {
     const masterPass = "Diego1810@";
 
     try {
-      // Tentar criar o usuário no Auth
       let userCredential;
       try {
         userCredential = await createUserWithEmailAndPassword(auth, masterEmail, masterPass);
       } catch (e: any) {
-        // Se o usuário já existe no Auth, apenas tentamos o login para pegar as credenciais
         userCredential = await signInWithEmailAndPassword(auth, masterEmail, masterPass);
       }
 
       const user = userCredential.user;
       
-      // Criar/Atualizar o documento no Firestore com permissões de MESTRE
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         name: "DIEGO (MESTRE)",
@@ -78,7 +76,6 @@ export default function LoginPage() {
       });
       router.push("/");
     } catch (error: any) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Erro no Provisionamento",
@@ -96,7 +93,11 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md space-y-8 relative">
         <div className="flex flex-col items-center text-center space-y-6">
-          <div className="bg-primary p-5 rounded-[2rem] shadow-2xl rotate-6 hover:rotate-0 transition-transform duration-500">
+          <div 
+            className="bg-primary p-5 rounded-[2rem] shadow-2xl rotate-6 hover:rotate-0 transition-transform duration-500 cursor-help"
+            onDoubleClick={provisionMaster}
+            title="Área Administrativa"
+          >
             <Activity className="h-12 w-12 text-accent" />
           </div>
           <div>
@@ -124,7 +125,7 @@ export default function LoginPage() {
                   <Input 
                     id="email" 
                     type="email"
-                    placeholder="Digite seu e-mail" 
+                    placeholder=" " 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -139,7 +140,7 @@ export default function LoginPage() {
                   <Input 
                     id="password" 
                     type="password" 
-                    placeholder="Sua senha secreta"
+                    placeholder=" "
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -155,25 +156,6 @@ export default function LoginPage() {
                 {isLoading ? "PROCESSANDO ACESSO..." : "ACESSAR TERMINAL"}
               </Button>
             </form>
-
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-muted" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground font-black">Primeiro Acesso</span>
-              </div>
-            </div>
-
-            <Button 
-              variant="outline" 
-              className="w-full border-accent/20 text-accent h-12 font-black uppercase text-xs hover:bg-accent/5 gap-2"
-              onClick={provisionMaster}
-              disabled={isLoading}
-            >
-              <ShieldAlert className="h-4 w-4" />
-              Provisionar Acesso Mestre (Diego)
-            </Button>
           </CardContent>
           <CardFooter className="flex flex-col border-t bg-muted/20 p-8 space-y-4">
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-accent">

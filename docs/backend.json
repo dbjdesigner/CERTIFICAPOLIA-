@@ -1,92 +1,61 @@
+
 {
   "entities": {
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents an individual user account within the CertiFlow Industrial application, with assigned roles and access permissions. Master Users ('Mestre Brazilian') can manage these accounts.",
+      "description": "Represents an individual user account with roles and permissions.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The full name of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user, used for identification. This field is expected to be unique across all users.",
-          "format": "email"
-        },
-        "roleId": {
-          "type": "string",
-          "description": "Reference to the Role entity that defines the user's permissions and access level within the application. (Relationship: Role 1:N User)"
-        },
-        "isActive": {
-          "type": "boolean",
-          "description": "Indicates whether the user account is currently active and permitted to log in to the system."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the user account was first created in the system.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating the last time any information related to this user account was updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "roleId": { "type": "string" },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "roleId",
-        "isActive",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "name", "email", "roleId", "isActive", "createdAt", "updatedAt"]
     },
     "Role": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Role",
       "type": "object",
-      "description": "Defines a specific set of permissions and access capabilities within the CertiFlow Industrial application. Roles are assigned to users to control what they can view and do.",
+      "description": "Defines permissions for user roles.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Role entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "A unique, descriptive name for the role (e.g., 'Master', 'Quality Inspector', 'Report Viewer')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A comprehensive description outlining the responsibilities, scope, and general permissions associated with this role."
-        },
-        "permissions": {
-          "type": "array",
-          "description": "An array of strings, where each string represents a specific granular permission or capability granted to users assigned this role (e.g., 'can_create_report', 'can_view_all_reports', 'can_manage_users', 'can_archive_reports', 'can_access_media').",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "permissions": { "type": "array", "items": { "type": "string" } }
       },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "permissions"
-      ]
+      "required": ["id", "name", "description", "permissions"]
+    },
+    "QualityReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QualityReport",
+      "type": "object",
+      "description": "A technical quality report for CVT units.",
+      "properties": {
+        "id": { "type": "string" },
+        "reportNumber": { "type": "string" },
+        "equipmentType": { "type": "string" },
+        "model": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "client": { "type": "string" },
+        "seller": { "type": "string" },
+        "value": { "type": "string" },
+        "operationType": { "type": "string", "enum": ["recovery", "sale"] },
+        "status": { "type": "string", "enum": ["Budget", "InRecovery", "Published", "Archived"] },
+        "technicianId": { "type": "string" },
+        "technicianName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "data": { "type": "object" }
+      }
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
@@ -94,35 +63,26 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Collection storing individual user accounts. Each user document will include a denormalized 'permissions' array (copied from the associated Role) to ensure Authorization Independence. Master users can manage these documents.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "User profiles and permissions."
         }
       },
       {
         "path": "/roles/{roleId}",
         "definition": {
           "entityName": "Role",
-          "schema": {
-            "$ref": "#/backend/entities/Role"
-          },
-          "description": "Collection defining the various roles within the application and their granular permissions. Managed primarily by Master Users.",
-          "params": [
-            {
-              "name": "roleId",
-              "description": "The unique identifier of the role."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/Role" },
+          "description": "Role definitions."
+        }
+      },
+      {
+        "path": "/reports/{reportId}",
+        "definition": {
+          "entityName": "QualityReport",
+          "schema": { "$ref": "#/backend/entities/QualityReport" },
+          "description": "Collection of quality reports."
         }
       }
-    ],
-    "reasoning": "The proposed Firestore structure prioritizes Authorization Independence and Structural Segregation to ensure secure, scalable, and debuggable access control. The core of the authorization model revolves around the 'User' and 'Role' entities.\n\nTo achieve **Authorization Independence (CRITICAL)**, the 'User' entity will be denormalized to include a 'permissions' array. This array will directly store the granular permissions derived from the user's assigned 'roleId' and the corresponding 'Role' entity. For example, if a 'Master' role has `['can_manage_users', 'can_view_all_reports']`, then every user assigned to this 'Master' role will have these permissions copied into their own `/users/{userId}` document. This eliminates the need for `get()` calls in Firestore Security Rules to fetch the role or its permissions, making rules atomic, faster, and easier to debug, especially during batch writes and transactions. A Cloud Function would be responsible for updating this 'permissions' array on user documents whenever a user's 'roleId' changes or when a 'Role' entity's permissions are updated.\n\n**Structural Segregation** is applied by creating distinct top-level collections for 'users' and 'roles'. All documents within `/users/{userId}` share a homogeneous security posture: Master Users (identified by their own denormalized `permissions` array containing `can_manage_users`) can perform CRUD operations on all user accounts, while other users can typically only read their own profile (or nothing, depending on specific rules). Similarly, all documents within `/roles/{roleId}` represent role definitions; Master Users can manage these roles, and all authenticated users might be able to read them to understand system capabilities.\n\nThis design effectively supports **QAPs (Rules are not Filters)**. For example, to allow a Master User to list all other users, the security rule for `/users` can simply check if `request.auth.uid` corresponds to a user whose own document (or `request.auth.token` if claims are used, though DBAC prefers database roles) contains the `can_manage_users` permission. Since this permission is denormalized directly onto the requesting user's document, no `get()` calls are required to verify the listing permission, thus enabling secure and efficient `list` operations without filtering on the client side."
+    ]
   }
 }

@@ -13,7 +13,8 @@ import {
   Trash2,
   ShieldCheck,
   Activity,
-  Settings
+  Settings,
+  Lock
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, deleteDoc, collection } from "firebase/firestore";
@@ -26,6 +27,7 @@ export default function ConfigurationPage() {
   const { toast } = useToast();
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState("Technician");
 
   const currentUserDocRef = useMemoFirebase(() => {
@@ -44,9 +46,19 @@ export default function ConfigurationPage() {
   const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
 
   const handleCreateUser = async () => {
-    if (!newUserName || !newUserEmail) return;
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      toast({
+        variant: "destructive",
+        title: "Dados Incompletos",
+        description: "Preencha todos os campos, incluindo a senha.",
+      });
+      return;
+    }
 
     try {
+      // For the prototype, we save the user data in Firestore.
+      // In a real app, you would use a Cloud Function to create the Auth user
+      // or invite the user via email.
       const userId = newUserEmail.replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
@@ -67,10 +79,11 @@ export default function ConfigurationPage() {
 
       toast({
         title: "Usuário Cadastrado",
-        description: `${newUserName.toUpperCase()} foi adicionado com sucesso.`,
+        description: `${newUserName.toUpperCase()} foi adicionado com sucesso. Peça ao usuário para realizar o primeiro acesso.`,
       });
       setNewUserName("");
       setNewUserEmail("");
+      setNewUserPassword("");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -160,6 +173,19 @@ export default function ConfigurationPage() {
                   placeholder="tecnico@certifica.com" 
                   className="h-12 border-primary/10 font-bold bg-muted/10" 
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Senha de Acesso</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40" />
+                  <Input 
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    type="password"
+                    placeholder="••••••••" 
+                    className="h-12 border-primary/10 font-bold bg-muted/10 pl-10" 
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">Nível de Acesso</Label>

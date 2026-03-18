@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -6,26 +7,35 @@ import { Button } from "@/components/ui/button";
 import { 
   PlusCircle, 
   TrendingUp, 
-  History, 
   Activity,
-  ChevronRight,
   ArrowRight,
   ClipboardList,
   Wrench,
   CheckCircle2
 } from "lucide-react";
-import { MOCK_REPORTS, SUMMARY_STATS } from "@/lib/mock-data";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { StatsChart } from "@/components/dashboard/StatsChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFirestore, useCollection, useUser, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 export default function Dashboard() {
-  const budgetReports = MOCK_REPORTS.filter(r => r.status === 'Budget');
-  const inRecoveryReports = MOCK_REPORTS.filter(r => r.status === 'InRecovery');
-  const publishedReports = MOCK_REPORTS.filter(r => r.status === 'Published');
+  const { user } = useUser();
+  const db = useFirestore();
 
-  const ReportTable = ({ reports }: { reports: typeof MOCK_REPORTS }) => (
+  const reportsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, "reports");
+  }, [db, user]);
+
+  const { data: reportsData, isLoading } = useCollection(reportsQuery);
+  const reports = reportsData || [];
+
+  const budgetReports = reports.filter(r => r.status === 'Budget');
+  const inRecoveryReports = reports.filter(r => r.status === 'InRecovery');
+  const publishedReports = reports.filter(r => r.status === 'Published');
+
+  const ReportTable = ({ reports }: { reports: any[] }) => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted/50 border-b">
@@ -48,7 +58,9 @@ export default function Dashboard() {
                 </div>
               </td>
               <td className="px-8 py-5 text-muted-foreground font-black uppercase text-xs">{report.client}</td>
-              <td className="px-8 py-5 text-muted-foreground font-mono font-bold text-xs">{report.date}</td>
+              <td className="px-8 py-5 text-muted-foreground font-mono font-bold text-xs">
+                {report.createdAt ? new Date(report.createdAt).toLocaleDateString('pt-BR') : '-'}
+              </td>
               <td className="px-8 py-5 text-center">
                 <Badge 
                   className={
@@ -65,10 +77,17 @@ export default function Dashboard() {
               </td>
             </tr>
           ))}
-          {reports.length === 0 && (
+          {reports.length === 0 && !isLoading && (
             <tr>
               <td colSpan={5} className="px-8 py-20 text-center text-muted-foreground font-bold uppercase text-xs tracking-widest">
-                Nenhum registro encontrado nesta categoria.
+                Nenhum registro encontrado. Comece a emitir novos laudos.
+              </td>
+            </tr>
+          )}
+          {isLoading && (
+            <tr>
+              <td colSpan={5} className="px-8 py-20 text-center">
+                <Activity className="h-6 w-6 animate-spin text-accent mx-auto" />
               </td>
             </tr>
           )}
@@ -85,9 +104,9 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Terminal de Controle</h1>
-            <p className="text-muted-foreground flex items-center gap-2 font-medium">
+            <p className="text-muted-foreground flex items-center gap-2 font-medium uppercase text-xs tracking-widest">
               <Activity className="h-4 w-4 text-accent" />
-              Bem-vindo, <span className="font-black text-primary uppercase tracking-tight">DIEGO</span>. Sistema CERTIFICA operacional.
+              Ambiente Operacional CERTIFICA
             </p>
           </div>
           <Link href="/reports/new">
@@ -99,21 +118,38 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {SUMMARY_STATS.map((stat, i) => (
-            <Card key={i} className="border-none shadow-md overflow-hidden group relative bg-white/80 backdrop-blur-sm">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="p-6">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{stat.label}</p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-3xl font-black text-primary tracking-tighter">{stat.value}</span>
-                  <div className="flex items-center text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    {stat.change}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="border-none shadow-md overflow-hidden group relative bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Total de Laudos</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-3xl font-black text-primary tracking-tighter">{reports.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-md overflow-hidden group relative bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Orçamentos</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-3xl font-black text-primary tracking-tighter">{budgetReports.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-md overflow-hidden group relative bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Recuperação</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-3xl font-black text-primary tracking-tighter">{inRecoveryReports.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-md overflow-hidden group relative bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Certificados</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-3xl font-black text-primary tracking-tighter">{publishedReports.length}</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="border-none shadow-xl bg-white overflow-hidden">

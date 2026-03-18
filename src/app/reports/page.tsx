@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -14,16 +13,9 @@ import {
   FileDown, 
   ExternalLink,
   Trash2,
-  MoreVertical,
   Activity
 } from "lucide-react";
 import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, where, doc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -73,6 +65,37 @@ export default function ReportsListPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (filteredReports.length === 0) {
+      toast({ title: "Nenhum dado para exportar", variant: "destructive" });
+      return;
+    }
+
+    const headers = ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Data"];
+    const rows = filteredReports.map(r => [
+      r.reportNumber || 'N/A',
+      r.equipmentType || 'N/A',
+      r.model || 'N/A',
+      r.clientName || 'N/A',
+      r.serialNumber || 'N/A',
+      r.status || 'N/A',
+      r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : 'N/A'
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(";")).join("\n");
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `relatorio_certifica_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Relatório Exportado", description: "O arquivo CSV foi gerado com sucesso." });
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
@@ -84,7 +107,11 @@ export default function ReportsListPage() {
             <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Base de dados certificada em tempo real.</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2 font-black uppercase text-xs h-12">
+            <Button 
+              variant="outline" 
+              className="gap-2 font-black uppercase text-xs h-12"
+              onClick={handleExportCSV}
+            >
               <FileDown className="h-4 w-4" />
               Exportar CSV
             </Button>
@@ -110,9 +137,6 @@ export default function ReportsListPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full md:w-auto">
-                <Button variant="ghost" className="gap-2 text-primary font-black uppercase text-[10px] tracking-widest">
-                  <Filter className="h-4 w-4 text-accent" /> Filtros Avançados
-                </Button>
                 <div className="h-4 w-px bg-border mx-2" />
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   {filteredReports.length} REGISTROS LOCALIZADOS

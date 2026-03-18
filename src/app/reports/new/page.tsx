@@ -20,13 +20,9 @@ export default function NewReportPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-primary">Novo Laudo de Qualidade</h1>
-              <p className="text-muted-foreground">Preencha os módulos abaixo para gerar um novo registro certificado.</p>
+              <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Novo Laudo de Qualidade</h1>
+              <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Iniciando registro certificado no terminal industrial.</p>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline">Cancelar</Button>
-            <Button className="bg-primary text-white shadow-md">Salvar Rascunho</Button>
           </div>
         </div>
 

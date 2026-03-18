@@ -76,14 +76,14 @@ export function QualityReportForm() {
     value: "",
     partialDescription: "",
     // Polia Primaria
-    priVacRef: "-24",
+    priVacRef: "24",
     priVacAntes: "",
     priVacDepois: "",
     priPresRef: "510",
     priPresAntes: "",
     priPresDepois: "",
     // Polia Secundaria
-    secVacRef: "-24",
+    secVacRef: "24",
     secVacAntes: "",
     secVacDepois: "",
     secPresRef: "510",
@@ -93,6 +93,11 @@ export function QualityReportForm() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleNumericInput = (field: string, value: string) => {
+    const numericValue = value.replace(/[^\d]/g, "");
+    handleInputChange(field, numericValue);
   };
 
   const handleAiAssist = async () => {
@@ -163,7 +168,7 @@ export function QualityReportForm() {
               <Input 
                 className="h-6 w-16 text-[10px] font-black bg-white border-accent/30 text-center" 
                 value={formData[`${prefix}VacRef` as keyof typeof formData]}
-                onChange={(e) => handleInputChange(`${prefix}VacRef`, e.target.value)}
+                onChange={(e) => handleNumericInput(`${prefix}VacRef`, e.target.value)}
               />
             </div>
           </div>
@@ -172,10 +177,10 @@ export function QualityReportForm() {
               <Label className="text-[9px] font-bold uppercase text-muted-foreground text-orange-600">Antes da Recuperação</Label>
               <div className="relative">
                 <Input 
-                  placeholder="0.0"
+                  placeholder="0"
                   className="h-10 font-black bg-orange-50/50 border-orange-200 pr-10" 
                   value={formData[`${prefix}VacAntes` as keyof typeof formData]}
-                  onChange={(e) => handleInputChange(`${prefix}VacAntes`, e.target.value)}
+                  onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-muted-foreground">INHG</span>
               </div>
@@ -184,10 +189,10 @@ export function QualityReportForm() {
               <Label className="text-[9px] font-bold uppercase text-muted-foreground text-emerald-600">Depois da Recuperação</Label>
               <div className="relative">
                 <Input 
-                  placeholder="0.0"
+                  placeholder="0"
                   className="h-10 font-black bg-emerald-50/50 border-emerald-200 pr-10" 
                   value={formData[`${prefix}VacDepois` as keyof typeof formData]}
-                  onChange={(e) => handleInputChange(`${prefix}VacDepois`, e.target.value)}
+                  onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-muted-foreground">INHG</span>
               </div>
@@ -204,7 +209,7 @@ export function QualityReportForm() {
               <Input 
                 className="h-6 w-16 text-[10px] font-black bg-white border-accent/30 text-center" 
                 value={formData[`${prefix}PresRef` as keyof typeof formData]}
-                onChange={(e) => handleInputChange(`${prefix}PresRef`, e.target.value)}
+                onChange={(e) => handleNumericInput(`${prefix}PresRef`, e.target.value)}
               />
             </div>
           </div>
@@ -213,10 +218,10 @@ export function QualityReportForm() {
               <Label className="text-[9px] font-bold uppercase text-muted-foreground text-orange-600">Antes da Recuperação</Label>
               <div className="relative">
                 <Input 
-                  placeholder="0.0"
+                  placeholder="0"
                   className="h-10 font-black bg-orange-50/50 border-orange-200 pr-10" 
                   value={formData[`${prefix}PresAntes` as keyof typeof formData]}
-                  onChange={(e) => handleInputChange(`${prefix}PresAntes`, e.target.value)}
+                  onChange={(e) => handleNumericInput(`${prefix}PresAntes`, e.target.value)}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-muted-foreground">KPA</span>
               </div>
@@ -225,10 +230,10 @@ export function QualityReportForm() {
               <Label className="text-[9px] font-bold uppercase text-muted-foreground text-emerald-600">Depois da Recuperação</Label>
               <div className="relative">
                 <Input 
-                  placeholder="0.0"
+                  placeholder="0"
                   className="h-10 font-black bg-emerald-50/50 border-emerald-200 pr-10" 
                   value={formData[`${prefix}PresDepois` as keyof typeof formData]}
-                  onChange={(e) => handleInputChange(`${prefix}PresDepois`, e.target.value)}
+                  onChange={(e) => handleNumericInput(`${prefix}PresDepois`, e.target.value)}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-muted-foreground">KPA</span>
               </div>
@@ -353,7 +358,7 @@ export function QualityReportForm() {
                       placeholder="0,00" 
                       className="h-12 border-primary/10 font-black bg-muted/5 pl-10"
                       value={formData.value}
-                      onChange={(e) => handleInputChange('value', e.target.value)}
+                      onChange={(e) => handleNumericInput('value', e.target.value)}
                     />
                   </div>
                 </div>

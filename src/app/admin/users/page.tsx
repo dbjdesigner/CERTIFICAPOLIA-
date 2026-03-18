@@ -16,7 +16,7 @@ import {
   ShieldCheck,
   Activity
 } from "lucide-react";
-import { useFirestore, useCollection, useUser, useMemoFirebase } from "@/firebase";
+import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -29,24 +29,26 @@ export default function UserManagementPage() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState("Technician");
 
-  const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "users");
-  }, [db]);
+  const currentUserDocRef = useMemoFirebase(() => {
+    if (!db || !currentUser?.uid) return null;
+    return doc(db, "users", currentUser.uid);
+  }, [db, currentUser?.uid]);
 
-  const { data: users, isLoading } = useCollection(usersQuery);
-
-  // Check if current user is Master (using permissions denormalized on user doc)
-  const currentUserDoc = users?.find(u => u.id === currentUser?.uid);
+  const { data: currentUserDoc, isLoading: isUserDocLoading } = useDoc(currentUserDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || !isMaster) return null;
+    return collection(db, "users");
+  }, [db, isMaster]);
+
+  const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
 
   const handleCreateUser = async () => {
     if (!newUserName || !newUserEmail) return;
 
     try {
-      // In a real app, this would be a cloud function to create the actual Auth user.
-      // For this prototype, we create the user profile in Firestore.
-      const userId = newUserEmail.replace(/[.@]/g, "_"); // Mock ID for prototype
+      const userId = newUserEmail.replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
       const permissions = newUserRole === "Master" 
@@ -74,7 +76,7 @@ export default function UserManagementPage() {
       toast({
         variant: "destructive",
         title: "Erro ao cadastrar",
-        description: "Você não tem permissão para esta ação.",
+        description: "Falha na comunicação com o banco de dados.",
       });
     }
   };
@@ -88,7 +90,18 @@ export default function UserManagementPage() {
     }
   };
 
-  if (!isMaster && !isLoading) {
+  if (isUserDocLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <Activity className="h-8 w-8 animate-spin text-accent" />
+        </main>
+      </div>
+    );
+  }
+
+  if (!isMaster) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Navbar />

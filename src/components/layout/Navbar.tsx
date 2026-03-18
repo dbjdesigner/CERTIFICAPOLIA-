@@ -4,8 +4,8 @@
 import Link from "next/link";
 import { ShieldCheck, PlusCircle, BarChart3, Users, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 
 export function Navbar() {
@@ -13,13 +13,12 @@ export function Navbar() {
   const auth = useAuth();
   const db = useFirestore();
   
-  const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "users");
-  }, [db]);
+  const userDocRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
   
-  const { data: users } = useCollection(usersQuery);
-  const currentUserDoc = users?.find(u => u.id === user?.uid || u.email === user?.email);
+  const { data: currentUserDoc } = useDoc(userDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
 
   const handleLogout = () => {

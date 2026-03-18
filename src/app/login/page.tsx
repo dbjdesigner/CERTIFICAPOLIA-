@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LayoutDashboard, ShieldCheck, Lock, User, Activity } from "lucide-react";
+import { ShieldCheck, Lock, User, Activity } from "lucide-react";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-primary uppercase">
-              CertiFlow <span className="text-accent italic">Industrial</span>
+              CERTIFICA <span className="text-accent italic">LAUDO CVT</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-2 font-bold tracking-widest uppercase opacity-70">Sistemas de Alta Precisão</p>
           </div>
@@ -43,7 +43,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1 pt-10 text-center">
             <CardTitle className="text-3xl font-black text-primary tracking-tight">AUTENTICAÇÃO</CardTitle>
             <CardDescription className="text-muted-foreground font-medium">
-              Ambiente restrito a técnicos e engenheiros.
+              Ambiente restrito a técnicos e engenheiros especializados.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-6 px-8 pb-10">
@@ -89,7 +89,7 @@ export default function LoginPage() {
               <span>Conexão Segura AES-256 Validada</span>
             </div>
             <p className="text-[10px] text-center text-muted-foreground font-medium">
-              &copy; 2024 CERTIFLOW INDUSTRIAL SYSTEMS - TODOS OS DIREITOS RESERVADOS
+              &copy; 2024 CERTIFICA LAUDO CVT - TODOS OS DIREITOS RESERVADOS
             </p>
           </CardFooter>
         </Card>

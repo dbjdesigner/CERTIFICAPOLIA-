@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Bell, Search, LayoutDashboard, FileText, Settings, User } from "lucide-react";
+import { ChevronDown, Bell, Search, Activity, FileText, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,16 +19,16 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-accent p-1.5 rounded-lg">
-              <LayoutDashboard className="h-6 w-6 text-white" />
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="bg-accent p-1.5 rounded-lg transition-transform group-hover:scale-110">
+              <Activity className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight hidden sm:inline-block">
-              CertiFlow <span className="text-accent">Industrial</span>
+            <span className="text-xl font-black tracking-tighter uppercase hidden sm:inline-block">
+              CERTIFICA <span className="text-accent italic">LAUDO CVT</span>
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em]">
             <Link href="/" className="hover:text-accent transition-colors">Dashboard</Link>
             <Link href="/reports" className="hover:text-accent transition-colors">Laudos</Link>
             <Link href="/clients" className="hover:text-accent transition-colors">Clientes</Link>
@@ -40,8 +40,8 @@ export function Navbar() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-primary-foreground/60" />
             <Input
               type="search"
-              placeholder="Buscar laudos, clientes ou equipamentos..."
-              className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-accent"
+              placeholder="Buscar registros CVT..."
+              className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-accent font-bold"
             />
           </div>
         </div>
@@ -53,33 +53,33 @@ export function Navbar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-auto gap-3 px-2 text-white hover:bg-white/10">
+              <Button variant="ghost" className="relative h-12 w-auto gap-3 px-3 text-white hover:bg-white/10 rounded-xl">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-semibold leading-none">Mestre Brazilian</p>
-                  <p className="text-xs text-white/60 leading-tight mt-1">Administrador</p>
+                  <p className="text-sm font-black leading-none uppercase tracking-tight">Mestre Brazilian</p>
+                  <p className="text-[10px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">Supervisor</p>
                 </div>
-                <Avatar className="h-9 w-9 border-2 border-accent">
+                <Avatar className="h-10 w-10 border-2 border-accent">
                   <AvatarImage src="https://picsum.photos/seed/user1/200" />
-                  <AvatarFallback className="bg-accent text-white">MB</AvatarFallback>
+                  <AvatarFallback className="bg-accent text-primary font-black">MB</AvatarFallback>
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-white/60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56 font-bold">
+              <DropdownMenuLabel className="uppercase text-[10px] tracking-widest">Painel do Usuário</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2">
-                <User className="h-4 w-4" /> Perfil
+              <DropdownMenuItem className="gap-2 cursor-pointer">
+                <User className="h-4 w-4" /> Perfil Técnico
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
-                <FileText className="h-4 w-4" /> Meus Relatórios
+              <DropdownMenuItem className="gap-2 cursor-pointer">
+                <FileText className="h-4 w-4" /> Meus Certificados
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem className="gap-2 cursor-pointer">
                 <Settings className="h-4 w-4" /> Configurações
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive gap-2">
-                Sair
+              <DropdownMenuItem className="text-destructive gap-2 font-black cursor-pointer">
+                LOGOUT TERMINAL
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

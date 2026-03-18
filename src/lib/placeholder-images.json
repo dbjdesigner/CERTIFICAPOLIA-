@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-industrial",
+      "description": "Industrial facility at dusk",
+      "imageUrl": "https://picsum.photos/seed/ind1/1200/600",
+      "imageHint": "industrial factory"
+    },
+    {
+      "id": "pump-close",
+      "description": "Close up of an industrial hydraulic pump",
+      "imageUrl": "https://picsum.photos/seed/pump1/600/400",
+      "imageHint": "hydraulic pump"
+    },
+    {
+      "id": "engine-maintenance",
+      "description": "Technician working on a motor",
+      "imageUrl": "https://picsum.photos/seed/motor1/600/400",
+      "imageHint": "engine maintenance"
+    },
+    {
+      "id": "user-avatar",
+      "description": "User profile avatar",
+      "imageUrl": "https://picsum.photos/seed/user1/200/200",
+      "imageHint": "man portrait"
+    }
+  ]
 }

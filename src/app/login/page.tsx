@@ -1,0 +1,99 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { LayoutDashboard, ShieldCheck, Lock, User, Activity } from "lucide-react";
+
+export default function LoginPage() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // Simulate login
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-3xl" />
+      
+      <div className="w-full max-w-md space-y-8 relative">
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="bg-primary p-5 rounded-[2rem] shadow-2xl rotate-6 hover:rotate-0 transition-transform duration-500">
+            <Activity className="h-12 w-12 text-accent" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter text-primary uppercase">
+              CertiFlow <span className="text-accent italic">Industrial</span>
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2 font-bold tracking-widest uppercase opacity-70">Sistemas de Alta Precisão</p>
+          </div>
+        </div>
+
+        <Card className="border-none shadow-[0_20px_50px_rgba(32,63,96,0.1)] overflow-hidden bg-white/90 backdrop-blur-md">
+          <div className="h-3 w-full bg-gradient-to-r from-primary via-accent to-primary animate-gradient-x" />
+          <CardHeader className="space-y-1 pt-10 text-center">
+            <CardTitle className="text-3xl font-black text-primary tracking-tight">AUTENTICAÇÃO</CardTitle>
+            <CardDescription className="text-muted-foreground font-medium">
+              Ambiente restrito a técnicos e engenheiros.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6 px-8 pb-10">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-primary/60">Credencial de Acesso</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    id="email" 
+                    placeholder="tecnico_master" 
+                    className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-primary/60">Senha Criptografada</Label>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
+                    required 
+                  />
+                </div>
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90 text-white h-14 font-black shadow-xl transition-all hover:scale-[1.02] active:scale-95 text-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? "PROCESSANDO ACESSO..." : "ACESSAR TERMINAL"}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col border-t bg-muted/20 p-8 space-y-4">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-accent">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Conexão Segura AES-256 Validada</span>
+            </div>
+            <p className="text-[10px] text-center text-muted-foreground font-medium">
+              &copy; 2024 CERTIFLOW INDUSTRIAL SYSTEMS - TODOS OS DIREITOS RESERVADOS
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+}

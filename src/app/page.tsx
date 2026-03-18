@@ -16,17 +16,33 @@ import {
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFirestore, useCollection, useUser, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { collection, query, where, doc } from "firebase/firestore";
 
 export default function Dashboard() {
   const { user } = useUser();
   const db = useFirestore();
 
+  // Get user profile to check if they are Master
+  const userDocRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
+  
+  const { data: currentUserDoc } = useDoc(userDocRef);
+  const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+
+  // Query reports based on user role
   const reportsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return collection(db, "reports");
-  }, [db, user]);
+    if (!db || !user || !currentUserDoc) return null;
+    
+    // If master, show everything. If technician, show only their reports.
+    if (isMaster) {
+      return collection(db, "reports");
+    } else {
+      return query(collection(db, "reports"), where("technicianId", "==", user.uid));
+    }
+  }, [db, user, isMaster, currentUserDoc]);
 
   const { data: reportsData, isLoading } = useCollection(reportsQuery);
   const reports = reportsData || [];

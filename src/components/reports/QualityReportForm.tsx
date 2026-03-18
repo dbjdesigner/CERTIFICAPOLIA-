@@ -51,7 +51,7 @@ const COMMON_SERVICES = [
   "SUBSTITUIÇÃO DE VEDAÇÕES (KITS)",
   "CALIBRAÇÃO DE CORPO DE VÁLVULAS",
   "TESTE DE ESTANQUEIDADE",
-  "TROCA DE FILTROS"
+  "PEÇA QUEBRADA SEM PODER REPARAR"
 ];
 
 const QUALITY_CHECKS = [
@@ -222,7 +222,7 @@ export function QualityReportForm() {
                 className="h-6 w-12 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
                 value={formData[`${prefix}VacRef` as keyof typeof formData] || ""} 
                 onChange={(e) => handleNumericInput(`${prefix}VacRef`, e.target.value)}
-                maxLength={3}
+                maxLength={2}
               />
             </div>
           </div>
@@ -233,7 +233,7 @@ export function QualityReportForm() {
                 className="h-10 font-black bg-orange-50/50" 
                 value={formData[`${prefix}VacAntes` as keyof typeof formData] || ""} 
                 onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)} 
-                maxLength={3}
+                maxLength={2}
               />
             </div>
             <div className="space-y-1">
@@ -242,7 +242,7 @@ export function QualityReportForm() {
                 className="h-10 font-black bg-emerald-50/50" 
                 value={formData[`${prefix}VacDepois` as keyof typeof formData] || ""} 
                 onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)} 
-                maxLength={3}
+                maxLength={2}
               />
             </div>
           </CardContent>

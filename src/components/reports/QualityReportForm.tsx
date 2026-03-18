@@ -31,7 +31,8 @@ import {
   Award,
   ChevronRight,
   ClipboardCheck,
-  Zap
+  Zap,
+  Settings2
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -163,31 +164,69 @@ export function QualityReportForm() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border shadow-sm overflow-hidden bg-white">
           <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase text-primary">Vácuo (INHG) - Ref: {formData[`${prefix}VacRef` as keyof typeof formData]}</span>
+            <span className="text-[10px] font-black uppercase text-primary">Vácuo (INHG)</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
+              <Input 
+                className="h-6 w-12 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
+                value={formData[`${prefix}VacRef` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}VacRef`, e.target.value)}
+                maxLength={3}
+              />
+            </div>
           </div>
           <CardContent className="p-4 grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
-              <Input className="h-10 font-black bg-orange-50/50" value={formData[`${prefix}VacAntes` as keyof typeof formData] || ""} onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)} />
+              <Input 
+                className="h-10 font-black bg-orange-50/50" 
+                value={formData[`${prefix}VacAntes` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}VacAntes`, e.target.value)} 
+                maxLength={3}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
-              <Input className="h-10 font-black bg-emerald-50/50" value={formData[`${prefix}VacDepois` as keyof typeof formData] || ""} onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)} />
+              <Input 
+                className="h-10 font-black bg-emerald-50/50" 
+                value={formData[`${prefix}VacDepois` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}VacDepois`, e.target.value)} 
+                maxLength={3}
+              />
             </div>
           </CardContent>
         </Card>
         <Card className="border shadow-sm overflow-hidden bg-white">
           <div className="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase text-primary">Pressão (KPA) - Ref: {formData[`${prefix}PresRef` as keyof typeof formData]}</span>
+            <span className="text-[10px] font-black uppercase text-primary">Pressão (KPA)</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-bold text-muted-foreground">REF:</span>
+              <Input 
+                className="h-6 w-14 text-[10px] font-black p-1 text-center bg-white border-primary/20" 
+                value={formData[`${prefix}PresRef` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}PresRef`, e.target.value)}
+                maxLength={4}
+              />
+            </div>
           </div>
           <CardContent className="p-4 grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-[9px] font-bold uppercase text-orange-600">Entrada</Label>
-              <Input className="h-10 font-black bg-orange-50/50" value={formData[`${prefix}PresAntes` as keyof typeof formData] || ""} onChange={(e) => handleNumericInput(`${prefix}PresAntes`, e.target.value)} />
+              <Input 
+                className="h-10 font-black bg-orange-50/50" 
+                value={formData[`${prefix}PresAntes` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}PresAntes`, e.target.value)} 
+                maxLength={4}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] font-bold uppercase text-emerald-600">Saída</Label>
-              <Input className="h-10 font-black bg-emerald-50/50" value={formData[`${prefix}PresDepois` as keyof typeof formData] || ""} onChange={(e) => handleNumericInput(`${prefix}PresDepois`, e.target.value)} />
+              <Input 
+                className="h-10 font-black bg-emerald-50/50" 
+                value={formData[`${prefix}PresDepois` as keyof typeof formData] || ""} 
+                onChange={(e) => handleNumericInput(`${prefix}PresDepois`, e.target.value)} 
+                maxLength={4}
+              />
             </div>
           </CardContent>
         </Card>

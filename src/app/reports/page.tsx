@@ -38,12 +38,9 @@ export default function ReportsListPage() {
 
   const reportsQuery = useMemoFirebase(() => {
     if (!db || !user || !currentUserDoc) return null;
-    if (isMaster) {
-      return collection(db, "reports");
-    } else {
-      return query(collection(db, "reports"), where("technicianId", "==", user.uid));
-    }
-  }, [db, user, isMaster, currentUserDoc]);
+    // Agora todos os técnicos visualizam a lista completa com valores
+    return collection(db, "reports");
+  }, [db, user, currentUserDoc]);
 
   const { data: reportsData, isLoading } = useCollection(reportsQuery);
   const reports = reportsData || [];
@@ -73,27 +70,19 @@ export default function ReportsListPage() {
       return;
     }
 
-    const headers = isMaster 
-      ? ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Valor", "Data"]
-      : ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Data"];
+    const headers = ["Registro", "Equipamento", "Modelo", "Cliente", "Serie", "Status", "Valor", "Data"];
     
     const rows = filteredReports.map(r => {
-      const basic = [
+      return [
         r.reportNumber || 'N/A',
         r.equipmentType || 'N/A',
         r.model || 'N/A',
         r.clientName || 'N/A',
         r.serialNumber || 'N/A',
         r.status || 'N/A',
+        r.value || "0,00",
         r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : 'N/A'
       ];
-      
-      if (isMaster) {
-        // Insert value at the correct position if master
-        basic.splice(6, 0, r.value || "0,00");
-      }
-      
-      return basic;
     });
 
     const csvContent = [headers, ...rows].map(e => e.join(";")).join("\n");
@@ -151,12 +140,6 @@ export default function ReportsListPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full md:w-auto">
-                {!isMaster && (
-                  <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
-                    <Lock className="h-3 w-3 text-amber-600" />
-                    <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Modo Operacional - Sem Valores</span>
-                  </div>
-                )}
                 <div className="h-4 w-px bg-border mx-2" />
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   {filteredReports.length} REGISTROS LOCALIZADOS
@@ -172,7 +155,7 @@ export default function ReportsListPage() {
                     <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Registro</th>
                     <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Unidade / Modelo</th>
                     <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Cliente Industrial</th>
-                    <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Série</th>
+                    <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Valor</th>
                     <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em]">Status</th>
                     <th className="px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em] text-right">Ação</th>
                   </tr>
@@ -191,7 +174,7 @@ export default function ReportsListPage() {
                         <span className="text-muted-foreground font-black uppercase text-[10px]">{report.clientName}</span>
                       </td>
                       <td className="px-6 py-5">
-                        <Badge variant="outline" className="border-primary/20 text-primary font-black text-[10px]">{report.serialNumber}</Badge>
+                         <span className="text-accent font-black text-xs">R$ {report.value || "0,00"}</span>
                       </td>
                       <td className="px-6 py-5">
                         <Badge 

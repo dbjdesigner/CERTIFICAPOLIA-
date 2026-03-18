@@ -36,17 +36,14 @@ export default function Dashboard() {
   const { data: currentUserDoc } = useDoc(userDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
   
-  // Garantir que DIEGO ROSA seja exibido corretamente
-  const techName = isMaster ? "DIEGO ROSA" : (currentUserDoc?.name || "TÉCNICO");
+  // Nome oficial do responsável técnico
+  const techName = "DIEGO ROSA";
 
   const reportsQuery = useMemoFirebase(() => {
     if (!db || !user || !currentUserDoc) return null;
-    if (isMaster) {
-      return collection(db, "reports");
-    } else {
-      return query(collection(db, "reports"), where("technicianId", "==", user.uid));
-    }
-  }, [db, user, isMaster, currentUserDoc]);
+    // Agora todos visualizam todos os relatórios para compor os valores totais
+    return collection(db, "reports");
+  }, [db, user, currentUserDoc]);
 
   const { data: reportsData, isLoading } = useCollection(reportsQuery);
   const reports = reportsData || [];
@@ -56,7 +53,6 @@ export default function Dashboard() {
   const publishedReports = reports.filter(r => r.status === 'Published');
 
   const calculateTotalValue = (items: any[]) => {
-    if (!isMaster) return "RESTRITO";
     const total = items.reduce((acc, curr) => {
       const val = typeof curr.value === 'string' ? parseFloat(curr.value.replace(/[^\d]/g, "")) / 100 : (parseFloat(curr.value) || 0);
       return acc + val;
@@ -91,7 +87,7 @@ export default function Dashboard() {
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Registro</th>
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Unidade CVT</th>
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Cliente Industrial</th>
-            {isMaster && <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Valor</th>}
+            <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em]">Valor</th>
             <th className="px-8 py-4 font-black text-muted-foreground uppercase text-[10px] tracking-[0.2em] text-right">Ação</th>
           </tr>
         </thead>
@@ -106,11 +102,9 @@ export default function Dashboard() {
                 </div>
               </td>
               <td className="px-8 py-5 text-muted-foreground font-black uppercase text-xs">{report.clientName || report.client}</td>
-              {isMaster && (
-                <td className="px-8 py-5 text-accent font-black text-xs">
-                  {report.value ? `R$ ${report.value}` : "R$ 0,00"}
-                </td>
-              )}
+              <td className="px-8 py-5 text-accent font-black text-xs">
+                {report.value ? `R$ ${report.value}` : "R$ 0,00"}
+              </td>
               <td className="px-8 py-5 text-right">
                 <Button 
                   variant="ghost" 
@@ -125,7 +119,7 @@ export default function Dashboard() {
           ))}
           {reports.length === 0 && !isLoading && (
             <tr>
-              <td colSpan={isMaster ? 5 : 4} className="px-8 py-20 text-center text-muted-foreground font-bold uppercase text-xs tracking-widest">
+              <td colSpan={5} className="px-8 py-20 text-center text-muted-foreground font-bold uppercase text-xs tracking-widest">
                 Nenhum registro localizado.
               </td>
             </tr>
@@ -145,7 +139,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Terminal Industrial</h1>
             <p className="text-muted-foreground flex items-center gap-2 font-medium uppercase text-[10px] tracking-widest">
               <Activity className="h-4 w-4 text-accent" />
-              Responsável: {techName}
+              Responsável Técnico: {techName}
             </p>
           </div>
           <Link href="/reports/new">
@@ -164,14 +158,7 @@ export default function Dashboard() {
                 <DollarSign className="h-4 w-4 text-amber-500" />
               </div>
               <div className="mt-2">
-                {isMaster ? (
-                  <span className="text-2xl font-black text-primary">{calculateTotalValue(budgetReports)}</span>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground/40">
-                    <Lock className="h-4 w-4" />
-                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
-                  </div>
-                )}
+                <span className="text-2xl font-black text-primary">{calculateTotalValue(budgetReports)}</span>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{budgetReports.length} pendentes</p>
               </div>
             </CardContent>
@@ -183,14 +170,7 @@ export default function Dashboard() {
                 <Wrench className="h-4 w-4 text-blue-500" />
               </div>
               <div className="mt-2">
-                {isMaster ? (
-                  <span className="text-2xl font-black text-primary">{calculateTotalValue(inRecoveryReports)}</span>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground/40">
-                    <Lock className="h-4 w-4" />
-                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
-                  </div>
-                )}
+                <span className="text-2xl font-black text-primary">{calculateTotalValue(inRecoveryReports)}</span>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{inRecoveryReports.length} em execução</p>
               </div>
             </CardContent>
@@ -202,14 +182,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="mt-2">
-                {isMaster ? (
-                  <span className="text-2xl font-black text-primary">{calculateTotalValue(publishedReports)}</span>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground/40">
-                    <Lock className="h-4 w-4" />
-                    <span className="text-xs font-black uppercase tracking-widest">Acesso Restrito</span>
-                  </div>
-                )}
+                <span className="text-2xl font-black text-primary">{calculateTotalValue(publishedReports)}</span>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{publishedReports.length} concluídos</p>
               </div>
             </CardContent>

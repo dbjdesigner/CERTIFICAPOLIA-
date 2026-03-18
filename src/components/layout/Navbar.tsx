@@ -55,12 +55,12 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-12 w-auto gap-3 px-3 text-white hover:bg-white/10 rounded-xl">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-black leading-none uppercase tracking-tight">Mestre Brazilian</p>
-                  <p className="text-[10px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">Supervisor</p>
+                  <p className="text-sm font-black leading-none uppercase tracking-tight">DIEGO</p>
+                  <p className="text-[10px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">Supervisor Técnico</p>
                 </div>
                 <Avatar className="h-10 w-10 border-2 border-accent">
-                  <AvatarImage src="https://picsum.photos/seed/user1/200" />
-                  <AvatarFallback className="bg-accent text-primary font-black">MB</AvatarFallback>
+                  <AvatarImage src="https://picsum.photos/seed/diego1/200" />
+                  <AvatarFallback className="bg-accent text-primary font-black">DG</AvatarFallback>
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-white/60" />
               </Button>

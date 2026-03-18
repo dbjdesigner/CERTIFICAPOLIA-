@@ -255,9 +255,10 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <div className="h-16 flex items-center justify-center px-6 border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm">
-                          {`MIN: -24 inHg`}
-                        </div>
+                        <Input 
+                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
+                          defaultValue="MIN: -24 inHg"
+                        />
                       </div>
                     </div>
 
@@ -266,9 +267,10 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <div className="h-16 flex items-center justify-center px-6 border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm">
-                          510 ±20 kPa
-                        </div>
+                        <Input 
+                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
+                          defaultValue="510 ±20 kPa"
+                        />
                       </div>
                     </div>
                   </div>
@@ -287,9 +289,10 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <div className="h-16 flex items-center justify-center px-6 border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm">
-                          {`MIN: -24 inHg`}
-                        </div>
+                        <Input 
+                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
+                          defaultValue="MIN: -24 inHg"
+                        />
                       </div>
                     </div>
 
@@ -298,9 +301,10 @@ export function QualityReportForm() {
                       <div className="flex items-center gap-4">
                         <Input className="h-16 w-32 text-center text-2xl font-black border-muted-foreground/20 text-primary" defaultValue="0" />
                         <Input className="h-16 w-32 text-center text-2xl font-black bg-[#E6F7F9] border-accent/30 text-accent" defaultValue="0" />
-                        <div className="h-16 flex items-center justify-center px-6 border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm">
-                          710 ±20 kPa
-                        </div>
+                        <Input 
+                          className="h-16 flex-1 text-center border-2 border-accent/20 rounded-2xl bg-white font-black text-accent text-sm shadow-sm"
+                          defaultValue="710 ±20 kPa"
+                        />
                       </div>
                     </div>
                   </div>
@@ -329,7 +333,7 @@ export function QualityReportForm() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm font-bold text-primary">
                       <span>Engenheiro Responsável:</span>
-                      <span className="text-accent uppercase">Mestre Brazilian</span>
+                      <span className="text-accent uppercase">DIEGO</span>
                     </div>
                     <div className="flex justify-between items-center text-sm font-bold text-primary">
                       <span>Equipe Técnica:</span>

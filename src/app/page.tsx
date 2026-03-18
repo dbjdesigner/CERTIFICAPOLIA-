@@ -27,7 +27,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Terminal de Controle</h1>
             <p className="text-muted-foreground flex items-center gap-2 font-medium">
               <Activity className="h-4 w-4 text-accent" />
-              Bem-vindo, <span className="font-black text-primary uppercase tracking-tight">Mestre Brazilian</span>. Sistema CERTIFICA operacional.
+              Bem-vindo, <span className="font-black text-primary uppercase tracking-tight">DIEGO</span>. Sistema CERTIFICA operacional.
             </p>
           </div>
           <Link href="/reports/new">

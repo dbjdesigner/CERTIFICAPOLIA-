@@ -1,10 +1,32 @@
+
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Activity, PlusCircle, BarChart3 } from "lucide-react";
+import { ShieldCheck, PlusCircle, BarChart3, Users, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const db = useFirestore();
+  
+  const usersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, "users");
+  }, [db]);
+  
+  const { data: users } = useCollection(usersQuery);
+  const currentUserDoc = users?.find(u => u.id === user?.uid || u.email === user?.email);
+  const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+
+  const handleLogout = () => {
+    auth.signOut();
+    window.location.href = "/login";
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white text-primary shadow-sm">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
@@ -30,18 +52,34 @@ export function Navbar() {
             <Link href="/reports" className="hover:text-accent transition-colors flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" /> RELATÓRIOS
             </Link>
+            {isMaster && (
+              <Link href="/admin/users" className="hover:text-accent transition-colors flex items-center gap-1.5">
+                <Users className="h-4 w-4" /> EQUIPE
+              </Link>
+            )}
           </nav>
         </div>
 
         <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-black leading-none uppercase tracking-tight text-primary">DIEGO</p>
-            <p className="text-[9px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">RESPONSÁVEL TÉCNICO</p>
+            <p className="text-sm font-black leading-none uppercase tracking-tight text-primary">
+              {currentUserDoc?.name || user?.email?.split('@')[0] || "ACESSANDO..."}
+            </p>
+            <p className="text-[9px] text-accent font-black leading-tight mt-1 uppercase tracking-widest">
+              {isMaster ? "RESPONSÁVEL TÉCNICO (MESTRE)" : "TÉCNICO ESPECIALISTA"}
+            </p>
           </div>
-          <Avatar className="h-12 w-12 border-2 border-accent/20">
-            <AvatarImage src="https://picsum.photos/seed/diego/200" />
-            <AvatarFallback className="bg-primary text-white font-black">DG</AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-12 w-12 border-2 border-accent/20">
+              <AvatarImage src={`https://picsum.photos/seed/${user?.uid || 'user'}/200`} />
+              <AvatarFallback className="bg-primary text-white font-black">
+                {user?.email?.[0].toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </header>

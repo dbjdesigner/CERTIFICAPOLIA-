@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,22 +7,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, Lock, User, Activity } from "lucide-react";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const auth = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1500);
+    
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Acesso Autorizado",
+        description: "Bem-vindo ao terminal CERTIFICA.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Falha na Autenticação",
+        description: "Credenciais inválidas ou acesso negado.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Decorative background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-3xl" />
       
@@ -49,27 +71,30 @@ export default function LoginPage() {
           <CardContent className="space-y-6 pt-6 px-8 pb-10">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-3">
-                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-primary/60">Credencial de Acesso</Label>
+                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-primary/60">Credencial (E-mail)</Label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     id="email" 
-                    placeholder="tecnico_master" 
+                    type="email"
+                    placeholder="tecnico@certifica.com" 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required 
                   />
                 </div>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-primary/60">Senha Criptografada</Label>
-                </div>
+                <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-primary/60">Senha Criptografada</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     id="password" 
                     type="password" 
                     className="pl-12 h-14 bg-muted/30 border-none focus:ring-accent font-bold" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required 
                   />
                 </div>

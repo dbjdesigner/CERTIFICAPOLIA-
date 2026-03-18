@@ -40,9 +40,21 @@ import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
+const SELLERS = [
+  "DOUGLAS",
+  "LEANDRO",
+  "LUIZ",
+  "MERCADOLIVRE",
+  "PAMELA",
+  "RODRIGO",
+  "RONALDO",
+  "THIAGO",
+  "VINICIUS"
+];
+
 export function QualityReportForm() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("testes");
+  const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -52,6 +64,8 @@ export function QualityReportForm() {
     model: "MODELO_CVT_2026",
     manufacturer: "BRAZILIAN_SYSTEMS",
     serialNumber: "SN-9988-CVT",
+    clientName: "",
+    sellerName: "",
     clientInfo: "",
     operationType: "maintenance" as any,
     partialDescription: "",
@@ -153,7 +167,7 @@ export function QualityReportForm() {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-2xl font-black text-primary uppercase tracking-tight">IDENTIFICAÇÃO DA UNIDADE CVT</h2>
-                  <p className="text-sm text-muted-foreground font-medium">Dados técnicos para certificação industrial.</p>
+                  <p className="text-sm text-muted-foreground font-medium">Dados técnicos e comerciais para certificação industrial.</p>
                 </div>
                 <Button 
                   onClick={handleAiAssist} 
@@ -165,7 +179,32 @@ export function QualityReportForm() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Nome do Cliente</Label>
+                  <Input 
+                    placeholder="Ex: Mineração Vale" 
+                    className="h-14 border-primary/10 focus:border-accent font-black text-primary bg-muted/5 uppercase"
+                    value={formData.clientName}
+                    onChange={(e) => handleInputChange('clientName', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Vendedor Responsável</Label>
+                  <Select 
+                    value={formData.sellerName} 
+                    onValueChange={(value) => handleInputChange('sellerName', value)}
+                  >
+                    <SelectTrigger className="h-14 border-primary/10 focus:ring-accent font-black text-primary bg-muted/5 uppercase">
+                      <SelectValue placeholder="Selecione o Vendedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SELLERS.map(seller => (
+                        <SelectItem key={seller} value={seller} className="font-bold">{seller}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-3">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Tipo de Conjunto</Label>
                   <Input 

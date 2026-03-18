@@ -13,8 +13,7 @@ import {
   Trash2,
   ShieldCheck,
   Activity,
-  Settings,
-  Lock
+  Settings
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, deleteDoc, collection } from "firebase/firestore";
@@ -55,9 +54,9 @@ export default function ConfigurationPage() {
     }
 
     try {
-      // O Admin apenas AUTORIZA o e-mail no banco de dados.
-      // O usuário criará sua senha na tela de login (Primeiro Acesso).
-      const userId = newUserEmail.toLowerCase().trim().replace(/[.@]/g, "_");
+      // Padronizando para minúsculas para evitar erros de login
+      const cleanEmail = newUserEmail.toLowerCase().trim();
+      const userId = cleanEmail.replace(/[.@]/g, "_");
       const userRef = doc(db, "users", userId);
       
       const permissions = newUserRole === "Master" 
@@ -67,7 +66,7 @@ export default function ConfigurationPage() {
       await setDoc(userRef, {
         id: userId,
         name: newUserName.toUpperCase(),
-        email: newUserEmail.toUpperCase().trim(),
+        email: cleanEmail,
         roleId: newUserRole === "Master" ? "master" : "tech",
         permissions,
         isActive: true,
@@ -77,7 +76,7 @@ export default function ConfigurationPage() {
 
       toast({
         title: "E-mail Autorizado",
-        description: `${newUserEmail.toUpperCase()} agora pode realizar o 'Primeiro Acesso' na tela de login.`,
+        description: `${cleanEmail} agora pode realizar o 'Primeiro Acesso' na tela de login.`,
       });
       setNewUserName("");
       setNewUserEmail("");

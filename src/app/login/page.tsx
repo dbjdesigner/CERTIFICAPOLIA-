@@ -28,7 +28,8 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email.toUpperCase().trim(), password);
+      const cleanEmail = email.toLowerCase().trim();
+      await signInWithEmailAndPassword(auth, cleanEmail, password);
       toast({
         title: "Acesso Autorizado",
         description: "Bem-vindo ao terminal CERTIFICA.",
@@ -38,7 +39,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Falha na Autenticação",
-        description: "Credenciais inválidas ou conta não criada. Se for seu primeiro acesso, use a opção abaixo.",
+        description: "E-mail ou senha incorretos. Se ainda não tem senha, clique em 'Primeiro Acesso'.",
       });
     } finally {
       setIsLoading(false);
@@ -50,31 +51,46 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Verificar se o e-mail está autorizado no Firestore (cadastrado pelo admin)
-      // Procuramos pelo e-mail ignorando maiúsculas/minúsculas
+      const cleanEmail = email.toLowerCase().trim();
+
+      // 1. Verificar se o e-mail está autorizado no Firestore
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toUpperCase().trim()));
+      const q = query(usersRef, where("email", "==", cleanEmail));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
         toast({
           variant: "destructive",
-          title: "Acesso Não Autorizado",
-          description: "Este e-mail ainda não foi autorizado pelo Administrador DIEGO ROSA.",
+          title: "E-mail não autorizado",
+          description: "Este e-mail ainda não foi cadastrado pelo Administrador DIEGO ROSA no painel de Configurações.",
         });
         setIsLoading(false);
         return;
       }
 
+      const authorizedUserData = querySnapshot.docs[0].data();
+
       // 2. Criar o usuário no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email.toUpperCase().trim(), password);
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
       const user = userCredential.user;
 
-      // 3. Atualizar o ID do documento no Firestore para bater com o UID do Auth (opcional, mas recomendado)
-      // Para manter simples, apenas logamos o sucesso
+      // 3. Vincular a autorização ao UID real do usuário
+      await setDoc(doc(db, "users", user.uid), {
+        ...authorizedUserData,
+        id: user.uid,
+        email: cleanEmail, // Garantindo minúscula
+        updatedAt: new Date().toISOString()
+      });
+
+      // Se o ID original era diferente (ex: baseado no email), opcionalmente deletamos o antigo
+      const oldId = querySnapshot.docs[0].id;
+      if (oldId !== user.uid) {
+        // Para manter simples no protótipo, não deletamos, mas o sistema priorizará o UID logado
+      }
+
       toast({
         title: "Conta Criada!",
-        description: "Seu primeiro acesso foi configurado com sucesso.",
+        description: "Sua senha foi definida com sucesso. Acesso liberado.",
       });
       router.push("/");
     } catch (error: any) {
@@ -82,13 +98,13 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "E-mail já cadastrado",
-          description: "Sua conta já existe. Tente fazer o login normal.",
+          description: "Você já definiu uma senha anteriormente. Tente fazer o login normal.",
         });
       } else {
         toast({
           variant: "destructive",
           title: "Erro no Cadastro",
-          description: error.message || "Ocorreu uma falha ao configurar seu acesso.",
+          description: "Verifique sua conexão e tente novamente.",
         });
       }
     } finally {
@@ -98,7 +114,7 @@ export default function LoginPage() {
 
   const provisionMaster = async () => {
     setIsLoading(true);
-    const masterEmail = "3DRIMPRESSOES@GMAIL.COM";
+    const masterEmail = "3drimpressoes@gmail.com";
     const masterPass = "Diego1810@";
 
     try {

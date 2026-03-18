@@ -35,6 +35,8 @@ export default function Dashboard() {
   
   const { data: currentUserDoc } = useDoc(userDocRef);
   const isMaster = currentUserDoc?.permissions?.includes("can_manage_users");
+  
+  // Garantir que DIEGO ROSA seja exibido corretamente
   const techName = isMaster ? "DIEGO ROSA" : (currentUserDoc?.name || "TÉCNICO");
 
   const reportsQuery = useMemoFirebase(() => {
@@ -55,7 +57,11 @@ export default function Dashboard() {
 
   const calculateTotalValue = (items: any[]) => {
     if (!isMaster) return "RESTRITO";
-    return items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const total = items.reduce((acc, curr) => {
+      const val = typeof curr.value === 'string' ? parseFloat(curr.value.replace(/[^\d]/g, "")) / 100 : (parseFloat(curr.value) || 0);
+      return acc + val;
+    }, 0);
+    return total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -102,7 +108,7 @@ export default function Dashboard() {
               <td className="px-8 py-5 text-muted-foreground font-black uppercase text-xs">{report.clientName || report.client}</td>
               {isMaster && (
                 <td className="px-8 py-5 text-accent font-black text-xs">
-                  R$ {report.value || "0,00"}
+                  {report.value ? `R$ ${report.value}` : "R$ 0,00"}
                 </td>
               )}
               <td className="px-8 py-5 text-right">

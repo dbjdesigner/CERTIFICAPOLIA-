@@ -29,10 +29,8 @@ import {
   CheckCircle,
   FileText,
   Award,
-  ChevronRight,
   ClipboardCheck,
-  Zap,
-  Settings2
+  Zap
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +87,12 @@ export function QualityReportForm() {
     return doc(db, "reports", reportId);
   }, [db, reportId]);
   
+  const userDocRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
+  
+  const { data: currentUserDoc } = useDoc(userDocRef);
   const { data: existingReport, isLoading: isReportLoading } = useDoc(reportRef);
 
   useEffect(() => {
@@ -143,6 +147,7 @@ export function QualityReportForm() {
       id: finalId,
       status: finalStatus,
       technicianId: user.uid,
+      technicianName: currentUserDoc?.name || "Técnico Certificador",
       reportNumber: formData.serialNumber !== "CF*" ? `QC-${formData.serialNumber.replace("CF*", "")}` : `QC-${Math.floor(Math.random() * 10000)}`,
       updatedAt: new Date().toISOString(),
       createdAt: formData.createdAt || new Date().toISOString()
@@ -340,6 +345,16 @@ export function QualityReportForm() {
                     </div>
                   </div>
                   <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Tipo de Operação</Label>
+                    <Select value={formData.operationType} onValueChange={(v) => handleInputChange('operationType', v as 'recovery' | 'sale')}>
+                      <SelectTrigger className="h-12 font-black"><SelectValue placeholder="Selecione a operação" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="recovery">RECUPERAÇÃO</SelectItem>
+                        <SelectItem value="sale">VENDA</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground">Modelo Conjunto</Label>
                     <Input className="h-12 font-black uppercase" value={formData.equipmentType} onChange={(e) => handleInputChange('equipmentType', e.target.value.toUpperCase())} />
                   </div>
@@ -404,7 +419,9 @@ export function QualityReportForm() {
                     <div className="text-center">
                       <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-accent">Responsável Técnico</p>
-                      <p className="font-black text-sm uppercase mt-1">{user?.displayName || user?.email?.split('@')[0] || "Técnico Certificador"}</p>
+                      <p className="font-black text-sm uppercase mt-1">
+                        {currentUserDoc?.roleId === 'master' ? "DIEGO ROSA" : (currentUserDoc?.name || "Técnico Certificador")}
+                      </p>
                     </div>
                     <div className="text-center">
                       <div className="h-px w-48 bg-white/20 mx-auto mb-3" />
@@ -431,8 +448,10 @@ export function QualityReportForm() {
                     <p className="font-black text-primary uppercase border-b pb-1">{formData.equipmentType} - {formData.model}</p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase">Certificação Digital</p>
-                    <p className="font-black text-accent uppercase border-b pb-1">QC-CVT-VALIDATED</p>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Operação / Certificação</p>
+                    <p className="font-black text-accent uppercase border-b pb-1">
+                      {formData.operationType === 'sale' ? 'VENDA' : 'RECUPERAÇÃO'} - QC-CVT-VALIDATED
+                    </p>
                   </div>
                </div>
 
@@ -460,7 +479,7 @@ export function QualityReportForm() {
 
                <div className="mt-12 text-center pt-8">
                   <Zap className="h-8 w-8 text-accent mx-auto mb-2 opacity-30" />
-                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA PELO TERMINAL CERTIFICA LAUDO CVT</p>
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.5em]">AUTENTICIDADE VALIDADA POR DIEGO ROSA - TERMINAL CERTIFICA LAUDO CVT</p>
                </div>
             </div>
           </CardContent>

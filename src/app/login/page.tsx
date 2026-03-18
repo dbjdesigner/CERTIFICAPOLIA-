@@ -61,7 +61,7 @@ export default function LoginPage() {
       
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
-        name: "DIEGO (MESTRE)",
+        name: "DIEGO ROSA",
         email: masterEmail,
         roleId: "master",
         permissions: ["can_manage_users", "can_create_report", "can_view_all_reports", "can_archive_reports", "can_access_media"],
@@ -72,7 +72,7 @@ export default function LoginPage() {
 
       toast({
         title: "Mestre Provisionado",
-        description: "Acesso administrativo configurado com sucesso.",
+        description: "Acesso administrativo configurado para DIEGO ROSA.",
       });
       router.push("/");
     } catch (error: any) {

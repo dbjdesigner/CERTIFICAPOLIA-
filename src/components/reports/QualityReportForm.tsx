@@ -25,10 +25,13 @@ import {
   CheckCircle2,
   Calendar,
   UserCheck,
-  Award
+  Award,
+  DollarSign,
+  ThumbsUp
 } from "lucide-react";
 import { aiAssistedDataEntry } from "@/ai/flows/ai-assisted-data-entry-flow";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const SELLERS = [
   "DOUGLAS",
@@ -46,6 +49,7 @@ export function QualityReportForm() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("identificacao");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
   
   const [formData, setFormData] = useState({
     equipmentType: "Unidade CVT Industrial",
@@ -55,7 +59,8 @@ export function QualityReportForm() {
     clientName: "",
     sellerName: "",
     clientInfo: "",
-    operationType: "maintenance" as any,
+    operationType: "recovery" as 'recovery' | 'sale',
+    value: "",
     partialDescription: "",
     // Polia Primaria
     priVacRef: "-24",
@@ -118,6 +123,14 @@ export function QualityReportForm() {
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const handleApproveBudget = () => {
+    setIsApproved(true);
+    toast({
+      title: "Orçamento Aprovado",
+      description: "O registro agora está liberado para execução e certificação.",
+    });
   };
 
   const TestSection = ({ title, prefix }: { title: string, prefix: 'pri' | 'sec' }) => (
@@ -219,18 +232,38 @@ export function QualityReportForm() {
           <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
             <Award className="h-6 w-6 text-primary" />
           </div>
-          <div>
-            <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Certificação de Qualidade CVT</h2>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Certificação de Qualidade CVT</h2>
+              <Badge 
+                variant={isApproved ? "default" : "outline"} 
+                className={isApproved ? "bg-emerald-500 text-white border-none font-black text-[10px] uppercase" : "border-amber-500 text-amber-600 font-black text-[10px] uppercase"}
+              >
+                {isApproved ? "APROVADO" : "ORÇAMENTO PENDENTE"}
+              </Badge>
+            </div>
             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Responsável Técnico: <span className="text-accent">DIEGO</span></p>
           </div>
         </div>
-        <Button 
-          className="bg-primary hover:bg-primary/90 text-white gap-2 font-black uppercase text-xs h-12 px-8 shadow-lg transition-all hover:scale-105"
-          onClick={() => toast({ title: "Laudo Sincronizado", description: "O registro foi salvo com sucesso no banco de dados." })}
-        >
-          <Save className="h-4 w-4" />
-          ARQUIVAR NO BANCO
-        </Button>
+        <div className="flex gap-3">
+          {!isApproved && (
+            <Button 
+              variant="outline"
+              className="border-amber-500 text-amber-600 hover:bg-amber-50 gap-2 font-black uppercase text-xs h-12 px-6"
+              onClick={handleApproveBudget}
+            >
+              <ThumbsUp className="h-4 w-4" />
+              APROVAR ORÇAMENTO
+            </Button>
+          )}
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-white gap-2 font-black uppercase text-xs h-12 px-8 shadow-lg transition-all hover:scale-105"
+            onClick={() => toast({ title: "Laudo Sincronizado", description: "O registro foi salvo com sucesso no banco de dados." })}
+          >
+            <Save className="h-4 w-4" />
+            {isApproved ? "ARQUIVAR NO BANCO" : "SALVAR RASCUNHO"}
+          </Button>
+        </div>
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden bg-white">
@@ -299,6 +332,18 @@ export function QualityReportForm() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Valor do Serviço (R$)</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="0,00" 
+                      className="h-12 border-primary/10 font-black bg-muted/5 pl-10"
+                      value={formData.value}
+                      onChange={(e) => handleInputChange('value', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Conjunto CVT</Label>
                   <Input 
                     placeholder="CONJUNTO CVT" 
@@ -308,13 +353,19 @@ export function QualityReportForm() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Modelo de Unidade</Label>
-                  <Input 
-                    placeholder="MODELO" 
-                    className="h-12 border-primary/10 font-black uppercase bg-muted/5"
-                    value={formData.model}
-                    onChange={(e) => handleInputChange('model', e.target.value)}
-                  />
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo de Operação</Label>
+                  <Select 
+                    value={formData.operationType} 
+                    onValueChange={(value) => handleInputChange('operationType', value as any)}
+                  >
+                    <SelectTrigger className="h-12 border-primary/10 font-black bg-muted/5">
+                      <SelectValue placeholder="Selecione a Operação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recovery" className="font-black">RECUPERAÇÃO TÉCNICA</SelectItem>
+                      <SelectItem value="sale" className="font-black">VENDA TÉCNICA</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Número de Série</Label>
@@ -325,24 +376,21 @@ export function QualityReportForm() {
                     onChange={(e) => handleInputChange('serialNumber', e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo de Operação</Label>
-                  <Select 
-                    value={formData.operationType} 
-                    onValueChange={(value) => handleInputChange('operationType', value)}
-                  >
-                    <SelectTrigger className="h-12 border-primary/10 font-black bg-muted/5">
-                      <SelectValue placeholder="Selecione a Operação" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recovery" className="font-black">RECUPERAÇÃO TÉCNICA</SelectItem>
-                      <SelectItem value="maintenance" className="font-black">MANUTENÇÃO PREVENTIVA</SelectItem>
-                      <SelectItem value="sale" className="font-black">VENDA TÉCNICA</SelectItem>
-                      <SelectItem value="installation" className="font-black">INSTALAÇÃO / SETUP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
+
+              {formData.operationType && (
+                <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-primary/10 animate-in fade-in slide-in-from-top-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <ClipboardCheck className="h-5 w-5 text-accent" />
+                    <h4 className="font-black text-primary uppercase text-sm tracking-tight">Detalhes do Fluxo: {formData.operationType === 'recovery' ? 'RECUPERAÇÃO' : 'VENDA'}</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                    {formData.operationType === 'recovery' 
+                      ? "Fluxo focado na análise de entrada, testes hidráulicos comparativos e certificação de performance nominal pós-manutenção."
+                      : "Fluxo focado na validação de saída, configuração conforme especificações de venda e emissão de termo de garantia de montagem."}
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="testes" className="mt-0 space-y-12">
